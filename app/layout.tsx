@@ -1,0 +1,39 @@
+import React from "react"
+import type { Metadata } from 'next'
+
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
+
+import { Geist, Geist_Mono, Source_Serif_4 } from 'next/font/google'
+import { AnimationProvider } from "@/components/animation-provider"
+
+// Initialize fonts
+const _geist = Geist({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
+const _geistMono = Geist_Mono({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
+const _sourceSerif_4 = Source_Serif_4({ subsets: ['latin'], weight: ["200","300","400","500","600","700","800","900"] })
+
+export const metadata: Metadata = {
+  title: 'Amish Gautam',
+  description: 'Portfolio of Amish Gautam',
+  generator: 'v0.app',
+  icons: {
+    icon: '/favicon.svg',
+  },
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en" className="dark">
+      <body className={`font-sans antialiased`}>
+        <AnimationProvider>
+          {children}
+        </AnimationProvider>
+        <Analytics />
+      </body>
+    </html>
+  )
+}
