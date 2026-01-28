@@ -207,6 +207,28 @@
   }
 }
 
+@keyframes scale-up {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scale-down {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
 .animate-fade-in-up {
   animation: fade-in-up-blur 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -221,4 +243,12 @@
 
 .animate-fade-in {
   animation: fade-in 0.6s ease-in-out;
+}
+
+.animate-scale-up {
+  animation: scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-scale-down {
+  animation: scale-down 0.3s cubic-bezier(0.36, 0, 0.66, -0.56) both;
 }

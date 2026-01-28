@@ -1,6 +1,14 @@
 import { put, list, del } from "@vercel/blob"
 import { NextRequest, NextResponse } from "next/server"
 
+// Set longer timeout and larger body size for large file uploads
+export const config = {
+  maxDuration: 60,
+  bodyParser: {
+    sizeLimit: "50mb",
+  },
+}
+
 interface MediaItem {
   id: string
   filename: string
@@ -19,8 +27,22 @@ async function getMetadata(): Promise<MediaItem[]> {
     
     if (metadataBlob) {
       const response = await fetch(metadataBlob.url)
-      const data = await response.json()
-      return data
+      if (!response.ok) {
+        console.error("[v0] Failed to fetch metadata blob:", response.status, response.statusText)
+        return []
+      }
+      const contentType = response.headers.get("content-type")
+      if (!contentType?.includes("application/json")) {
+        console.error("[v0] Metadata blob is not JSON, content-type:", contentType)
+        return []
+      }
+      const text = await response.text()
+      if (!text) {
+        console.warn("[v0] Metadata blob is empty")
+        return []
+      }
+      const data = JSON.parse(text)
+      return Array.isArray(data) ? data : []
     }
   } catch (error) {
     console.error("[v0] Error getting metadata:", error)
@@ -33,6 +55,7 @@ async function saveMetadata(metadata: MediaItem[]) {
     const blob = await put(METADATA_KEY, JSON.stringify(metadata, null, 2), {
       access: "public",
       contentType: "application/json",
+      allowOverwrite: true,
     })
     console.log("[v0] Metadata saved to:", blob.url)
   } catch (error) {
@@ -60,14 +83,26 @@ export async function POST(request: NextRequest) {
     const filename = `${id}.${extension}`
 
     // Upload file to Vercel Blob
-    const blob = await put(filename, file, {
-      access: "public",
-    })
-
-    console.log("[v0] File uploaded to:", blob.url)
+    let blob
+    try {
+      blob = await put(filename, file, {
+        access: "public",
+      })
+      console.log("[v0] File uploaded to:", blob.url)
+    } catch (blobError) {
+      console.error("[v0] Blob upload error:", blobError)
+      throw new Error(`Failed to upload file to blob storage: ${String(blobError)}`)
+    }
 
     // Update metadata
-    const metadata = await getMetadata()
+    let metadata
+    try {
+      metadata = await getMetadata()
+    } catch (metaError) {
+      console.error("[v0] Failed to get metadata:", metaError)
+      metadata = []
+    }
+
     metadata.push({
       id,
       filename,
@@ -76,13 +111,21 @@ export async function POST(request: NextRequest) {
       uploadedAt: new Date().toISOString(),
       url: blob.url,
     })
-    await saveMetadata(metadata)
+
+    try {
+      await saveMetadata(metadata)
+      console.log("[v0] Metadata updated successfully")
+    } catch (saveError) {
+      console.error("[v0] Failed to save metadata:", saveError)
+      throw new Error(`Failed to save metadata: ${String(saveError)}`)
+    }
 
     return NextResponse.json({ success: true, id, filename, url: blob.url })
   } catch (error) {
     console.error("[v0] Upload error:", error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return NextResponse.json(
-      { error: "Upload failed", details: String(error) },
+      { error: "Upload failed", details: errorMessage },
       { status: 500 }
     )
   }
@@ -92,7 +135,13 @@ export async function GET() {
   try {
     const metadata = await getMetadata()
     console.log("[v0] Returning metadata with", metadata.length, "items")
-    return NextResponse.json(metadata)
+    return NextResponse.json(metadata, {
+      headers: {
+        "Cache-Control": "no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    })
   } catch (error) {
     console.error("[v0] Get media error:", error)
     return NextResponse.json(
