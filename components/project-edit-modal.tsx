@@ -184,6 +184,51 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     }))
   }
 
+  const handleAddImages = async (projectId: string, files: File[]) => {
+    try {
+      setIsUploading(true)
+
+      // Upload files and add to project
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("projectId", projectId)
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) throw new Error("Failed to upload image")
+        return response.json()
+      })
+
+      const uploadResults = await Promise.all(uploadPromises)
+      const newImages = uploadResults.flatMap(result => result.metadata || [])
+
+      // Add new images to the project
+      setProjects(projects.map(p =>
+        p.id === projectId
+          ? { ...p, images: [...p.images, ...newImages] }
+          : p
+      ))
+
+      toast({
+        title: "Success",
+        description: `Added ${newImages.length} image(s) to the project.`,
+      })
+    } catch (error) {
+      console.error("[v0] Error adding images:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add images to the project.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const handleProjectUpload = async ({ title, description, tag, images }: { 
     title: string
     description: string
@@ -519,6 +564,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                             onUpdateImage={handleUpdateImage}
                             onDeleteImage={handleDeleteImage}
                             onReorderImages={handleReorderImages}
+                            onAddImages={handleAddImages}
                           />
                         </div>
 

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronDown, ChevronUp, Trash2, GripVertical, Edit2 } from "lucide-react"
+import { useState, useRef } from "react"
+import { ChevronDown, ChevronUp, Trash2, GripVertical, Edit2, Plus } from "lucide-react"
 
 interface MediaItem {
   id: string
@@ -20,6 +20,7 @@ interface ImageEditPanelProps {
   onUpdateImage: (projectId: string, imageId: string, updates: Partial<MediaItem>) => void
   onDeleteImage: (projectId: string, imageId: string) => void
   onReorderImages: (projectId: string, fromIndex: number, toIndex: number) => void
+  onAddImages?: (projectId: string, files: File[]) => Promise<void>
 }
 
 export function ImageEditPanel({
@@ -28,9 +29,30 @@ export function ImageEditPanel({
   onUpdateImage,
   onDeleteImage,
   onReorderImages,
+  onAddImages,
 }: ImageEditPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.currentTarget.files
+    if (!files || !onAddImages) return
+
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith("image/"))
+    if (imageFiles.length === 0) return
+
+    try {
+      setIsUploading(true)
+      await onAddImages(projectId, imageFiles)
+    } catch (error) {
+      console.error("[v0] Error adding images:", error)
+    } finally {
+      setIsUploading(false)
+      e.currentTarget.value = ""
+    }
+  }
 
   return (
     <div className="mt-3 border-t border-white/10 pt-3">
@@ -51,6 +73,39 @@ export function ImageEditPanel({
 
       {isExpanded && (
         <div className="mt-3 space-y-2 bg-white/5 rounded-lg p-3 max-h-[400px] overflow-y-auto">
+          {/* Add Images Button */}
+          {onAddImages && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-accent/10 hover:bg-accent/20 disabled:opacity-50 border border-dashed border-accent/50 rounded-lg transition-colors text-sm text-accent font-medium"
+            >
+              {isUploading ? (
+                <>
+                  <div className="size-3 border border-accent border-t-transparent rounded-full animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Plus className="size-4" strokeWidth={2} />
+                  Add Images
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Hidden File Input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileSelect}
+            disabled={isUploading}
+            className="hidden"
+          />
+
+          {/* Images List */}
           {images.map((image, index) => (
             <div
               key={image.id}
