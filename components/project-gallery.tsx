@@ -194,15 +194,20 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
                   />
                   
                   {/* Overlay Info */}
-                  <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/95 via-background/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
-                    <div>
-                      <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
-                      {project.description && (
-                        <p className="text-muted-foreground text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
-                      )}
-                      {imageCount > 1 && (
-                        <p className="text-muted-foreground text-xs mt-2">{imageCount} images</p>
-                      )}
+                  <div className="absolute inset-0 flex flex-col justify-end">
+                    {/* Subtle dark overlay for contrast */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {/* Text content */}
+                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
+                      <div>
+                        <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
+                        {project.description && (
+                          <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
+                        )}
+                        {imageCount > 1 && (
+                          <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
