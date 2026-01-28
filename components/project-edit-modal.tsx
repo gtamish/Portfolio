@@ -398,28 +398,6 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                 <Plus className="size-5" />
                 <span>Add New Project</span>
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-
-              {/* Tag Selector */}
-              <div className="flex gap-2 mb-4">
-                <label className="text-sm font-medium text-foreground/70">Project Type:</label>
-                <select
-                  value={selectedTag}
-                  onChange={(e) => setSelectedTag(e.target.value as "Visuals" | "Case Studies")}
-                  className="btn-interactive px-3 py-1.5 rounded-lg bg-background/40 text-foreground text-sm border border-white/10 dark:border-white/5 hover:bg-accent/20"
-                >
-                  <option value="Visuals">Visuals</option>
-                  <option value="Case Studies">Case Studies</option>
-                </select>
-              </div>
-
-              {/* Add New Project Button */}
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="size-5 animate-spin text-muted-foreground" />
