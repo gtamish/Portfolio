@@ -27,16 +27,17 @@ export function StickyHeader({ title }: StickyHeaderProps) {
   return (
     <div
       className={`
-        fixed top-0 left-1/2 -translate-x-1/2 z-20
-        py-3 sm:py-4 px-6 sm:px-8
+        fixed inset-x-0 top-0 z-20
         transition-all duration-300 ease-out
         ${isSticky 
-          ? "opacity-100 translate-y-0 bg-background/70 backdrop-blur-2xl border-b border-border/40 shadow-sm" 
+          ? "opacity-100 translate-y-0 bg-background/70 backdrop-blur-xl border-b border-border/40 shadow-lg" 
           : "opacity-0 -translate-y-full"
         }
       `}
     >
-      <h1 className="text-base sm:text-lg font-semibold text-foreground whitespace-nowrap">{title}</h1>
+      <div className="flex items-center justify-center py-3 sm:py-4 px-6 sm:px-8">
+        <h1 className="text-base sm:text-lg font-semibold text-foreground whitespace-nowrap">{title}</h1>
+      </div>
     </div>
   )
 }
