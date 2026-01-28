@@ -14,6 +14,7 @@ export default function Projects() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [galleryKey, setGalleryKey] = useState(0)
   const [selectedFilter, setSelectedFilter] = useState<ProjectTag | null>(null)
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
 
   const handleProjectsUpdated = () => {
     setGalleryKey(k => k + 1)
@@ -28,7 +29,7 @@ export default function Projects() {
       <section className="pt-20 sm:pt-24 pb-40 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8 sm:mb-12">
+          <div className={`text-center mb-8 sm:mb-12 transition-opacity duration-300 ${isFullscreenOpen ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground font-bold animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
               My Projects
             </h1>
@@ -38,16 +39,20 @@ export default function Projects() {
           </div>
 
           {/* Filter */}
-          <ProjectFilter onFilterChange={setSelectedFilter} />
+          <div className={`transition-opacity duration-300 ${isFullscreenOpen ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
+            <ProjectFilter onFilterChange={setSelectedFilter} />
+          </div>
 
           {/* Gallery */}
           <div className="relative">
-            <ProjectGallery key={galleryKey} filter={selectedFilter} />
+            <ProjectGallery key={galleryKey} filter={selectedFilter} onFullscreenChange={setIsFullscreenOpen} />
           </div>
         </div>
       </section>
-      <FloatingDock />
-      <AnimatedThemeToggle onEditClick={() => setShowEditModal(true)} />
+      <div className={`transition-opacity duration-300 ${isFullscreenOpen ? "opacity-10" : "opacity-100"}`}>
+        <FloatingDock />
+        <AnimatedThemeToggle onEditClick={() => setShowEditModal(true)} />
+      </div>
       <ProjectEditModal 
         isOpen={showEditModal} 
         onClose={() => setShowEditModal(false)}

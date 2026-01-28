@@ -247,6 +247,25 @@
   background-color: oklch(0.92 0 0 / 100%);
 }
 
+/* Featured chip gradient animation */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.featured-chip {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 300% 300%;
+  animation: gradient-shift 3s ease infinite;
+}
+
 .dark .icon-button:hover:not(:disabled) {
   background-color: oklch(0.22 0 0 / 100%);
 }
@@ -289,4 +308,14 @@
 
 .link-interactive:hover::after {
   width: 100%;
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

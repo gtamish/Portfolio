@@ -13,6 +13,7 @@ interface MediaItem {
   uploadedAt: string
   url?: string
   tag?: "Visuals" | "Case Studies"
+  featured?: boolean
 }
 
 interface Project {
@@ -22,6 +23,7 @@ interface Project {
   images: MediaItem[]
   createdAt: string
   tag?: "Visuals" | "Case Studies"
+  featured?: boolean
 }
 
 interface ProjectEditModalProps {
@@ -78,6 +80,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
             images: images.reverse(),
             createdAt: images[0].uploadedAt,
             tag: (images[0].tag || "Visuals") as "Visuals" | "Case Studies",
+            featured: images[0].featured || false,
           }))
           
           setProjects(projectsArray.reverse())
@@ -133,6 +136,12 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
   const handleUpdateTag = (projectId: string, newTag: "Visuals" | "Case Studies") => {
     setProjects(projects.map(p => 
       p.id === projectId ? { ...p, tag: newTag } : p
+    ))
+  }
+
+  const handleToggleFeatured = (projectId: string) => {
+    setProjects(projects.map(p => 
+      p.id === projectId ? { ...p, featured: !p.featured } : { ...p, featured: false }
     ))
   }
 
@@ -296,13 +305,14 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     try {
       setIsUploading(true)
       
-      // Save projects order, metadata, and tags
+      // Save projects order, metadata, tags, and featured status
       const metadata = projects.flatMap(project => 
         project.images.map(img => ({
           ...img,
           title: project.title,
           description: project.description,
           tag: project.tag || "Visuals",
+          featured: project.featured || false,
         }))
       )
 
@@ -436,7 +446,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                             placeholder="Project description"
                             rows={2}
                           />
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <p className="text-xs text-muted-foreground/70">
                               {project.images.length} image{project.images.length !== 1 ? 's' : ''}
                             </p>
@@ -448,6 +458,16 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                               <option value="Visuals">Visuals</option>
                               <option value="Case Studies">Case Studies</option>
                             </select>
+                            <button
+                              onClick={() => handleToggleFeatured(project.id)}
+                              className={`btn-interactive text-xs px-3 py-1 rounded-full font-medium transition-all ${
+                                project.featured
+                                  ? "bg-gradient-to-r from-orange-400 to-pink-400 text-white"
+                                  : "bg-white/10 border border-white/20 hover:border-accent/50 text-foreground"
+                              }`}
+                            >
+                              {project.featured ? "★ Featured" : "☆ Featured"}
+                            </button>
                           </div>
                         </div>
 

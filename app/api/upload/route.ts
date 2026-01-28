@@ -16,6 +16,8 @@ interface MediaItem {
   description: string
   uploadedAt: string
   url: string
+  tag?: string
+  featured?: boolean
 }
 
 const METADATA_KEY = "projects-metadata.json"
@@ -112,6 +114,7 @@ export async function POST(request: NextRequest) {
       uploadedAt: new Date().toISOString(),
       url: blob.url,
       tag: tag || "Visuals",
+      featured: false,
     })
 
     try {

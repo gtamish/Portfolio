@@ -13,6 +13,7 @@ interface MediaItem {
   url?: string
   projectId?: string
   tag?: "Visuals" | "Case Studies"
+  featured?: boolean
 }
 
 interface Project {
@@ -22,6 +23,7 @@ interface Project {
   images: MediaItem[]
   createdAt: string
   tag?: "Visuals" | "Case Studies"
+  featured?: boolean
 }
 
 // Determine grid span based on image count and aspect ratio
@@ -45,7 +47,7 @@ const getAspectRatio = (imageCount: number): string => {
   return "aspect-[4/3]"
 }
 
-export function ProjectGallery({ filter }: { filter?: string | null }) {
+export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void }) {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -88,6 +90,7 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
         images: images.reverse(),
         createdAt: images[0].uploadedAt,
         tag: (images[0].tag || "Visuals") as "Visuals" | "Case Studies",
+        featured: images[0].featured || false,
       }))
 
       setProjects(projectsArray)
@@ -109,14 +112,16 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
   useEffect(() => {
     if (selectedProject) {
       document.body.style.overflow = "hidden"
+      onFullscreenChange?.(true)
     } else {
       document.body.style.overflow = "unset"
+      onFullscreenChange?.(false)
     }
     
     return () => {
       document.body.style.overflow = "unset"
     }
-  }, [selectedProject])
+  }, [selectedProject, onFullscreenChange])
 
   const handleImageLoad = (id: string) => {
     console.log("[v0] Image loaded:", id)
@@ -191,6 +196,14 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
               >
                 {/* Image Container */}
                 <div className="relative w-full h-full overflow-hidden">
+                  {/* Featured Badge */}
+                  {project.featured && (
+                    <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20">
+                      <div className="featured-chip px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-semibold shadow-lg">
+                        Featured
+                      </div>
+                    </div>
+                  )}
                   {!isImageLoaded && (
                     <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
                       <Loader2 className="size-6 text-muted-foreground animate-spin" />
