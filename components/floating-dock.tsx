@@ -3,10 +3,7 @@
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-
-import { Home, FolderOpen, User } from "lucide-react"
 import { useInitialAnimation } from "./animation-provider"
-import { MoreDropdown } from "./more-dropdown"
 
 interface DockItem {
   icon: React.ReactNode
@@ -14,11 +11,7 @@ interface DockItem {
   href: string
 }
 
-interface FloatingDockProps {
-  onUploadClick?: () => void
-}
-
-export function FloatingDock({ onUploadClick }: FloatingDockProps) {
+export function FloatingDock() {
   const pathname = usePathname()
   const shouldAnimate = useInitialAnimation()
   const [isVisible, setIsVisible] = useState(true)
@@ -91,9 +84,7 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
       className={`fixed bottom-6 left-1/2 z-30 -translate-x-1/2 transition-all duration-500 ease-out ${shouldAnimate ? "animate-slide-in-bottom" : ""} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"}`}
       style={shouldAnimate ? { animationDelay: "0.4s" } : undefined}
     >
-      <div className="flex flex-col items-center gap-3">
-        <MoreDropdown onUploadClick={onUploadClick} />
-        <div className="flex items-center gap-1 rounded-full border border-border/50 bg-background/70 px-3 py-2 shadow-lg backdrop-blur-xl">
+      <div className="flex items-center gap-1 rounded-full border border-border/50 bg-background/70 px-3 py-2 shadow-lg backdrop-blur-xl">
           {items.map((item) => {
             const isActive = getIsActive(item.href)
             return (
@@ -118,7 +109,6 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
             )
           })}
         </div>
-      </div>
     </nav>
   )
 }

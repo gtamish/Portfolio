@@ -31,8 +31,8 @@ export default function Projects() {
           </div>
         </div>
       </section>
-      <FloatingDock onUploadClick={() => setShowUploadPopup(true)} />
-      <AnimatedThemeToggle />
+      <FloatingDock />
+      <AnimatedThemeToggle onUploadClick={() => setShowUploadPopup(true)} />
       <UploadPopup isOpen={showUploadPopup} onClose={() => setShowUploadPopup(false)} />
     </main>
   )

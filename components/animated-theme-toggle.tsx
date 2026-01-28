@@ -2,9 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { ThemeToggle } from "./theme-toggle"
+import { MoreDropdown } from "./more-dropdown"
 import { useInitialAnimation } from "./animation-provider"
 
-export function AnimatedThemeToggle() {
+interface AnimatedThemeToggleProps {
+  onUploadClick?: () => void
+}
+
+export function AnimatedThemeToggle({ onUploadClick }: AnimatedThemeToggleProps = {}) {
   const shouldAnimate = useInitialAnimation()
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
@@ -62,9 +67,10 @@ export function AnimatedThemeToggle() {
 
   return (
     <div 
-      className={`fixed bottom-6 right-6 z-30 transition-all duration-500 ease-out ${shouldAnimate ? "animate-slide-in-bottom-right" : ""} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"}`}
+      className={`fixed bottom-6 right-6 z-30 flex items-center gap-2 transition-all duration-500 ease-out ${shouldAnimate ? "animate-slide-in-bottom-right" : ""} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"}`}
       style={shouldAnimate ? { animationDelay: "0.5s" } : undefined}
     >
+      {onUploadClick && <MoreDropdown onUploadClick={onUploadClick} />}
       <ThemeToggle />
     </div>
   )
