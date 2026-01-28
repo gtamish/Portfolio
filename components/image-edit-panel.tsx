@@ -17,7 +17,6 @@ interface MediaItem {
 interface ImageEditPanelProps {
   projectId: string
   images: MediaItem[]
-  onUpdateImage: (projectId: string, imageId: string, updates: Partial<MediaItem>) => void
   onDeleteImage: (projectId: string, imageId: string) => void
   onReorderImages: (projectId: string, fromIndex: number, toIndex: number) => void
   onAddImages?: (projectId: string, files: File[]) => Promise<void>
@@ -26,7 +25,6 @@ interface ImageEditPanelProps {
 export function ImageEditPanel({
   projectId,
   images,
-  onUpdateImage,
   onDeleteImage,
   onReorderImages,
   onAddImages,
@@ -129,7 +127,7 @@ export function ImageEditPanel({
                 {image.url && (
                   <img
                     src={image.url}
-                    alt={image.title}
+                    alt={image.filename}
                     className="w-12 h-12 rounded object-cover flex-shrink-0"
                   />
                 )}
@@ -144,28 +142,6 @@ export function ImageEditPanel({
                   <Trash2 className="size-3.5" strokeWidth={1.5} />
                 </button>
               </div>
-
-              {/* Image Title Input */}
-              <input
-                type="text"
-                value={image.title}
-                onChange={(e) =>
-                  onUpdateImage(projectId, image.id, { title: e.target.value })
-                }
-                className="w-full text-xs bg-white/5 border border-white/10 rounded px-2 py-1.5 text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent transition-colors"
-                placeholder="Image title"
-              />
-
-              {/* Image Description Input */}
-              <textarea
-                value={image.description}
-                onChange={(e) =>
-                  onUpdateImage(projectId, image.id, { description: e.target.value })
-                }
-                className="w-full text-xs bg-white/5 border border-white/10 rounded px-2 py-1.5 text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent transition-colors resize-none"
-                placeholder="Image description (optional)"
-                rows={2}
-              />
             </div>
           ))}
         </div>

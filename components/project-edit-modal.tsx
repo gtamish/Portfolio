@@ -561,7 +561,6 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                           <ImageEditPanel
                             projectId={project.id}
                             images={project.images}
-                            onUpdateImage={handleUpdateImage}
                             onDeleteImage={handleDeleteImage}
                             onReorderImages={handleReorderImages}
                             onAddImages={handleAddImages}
