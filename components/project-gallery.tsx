@@ -26,27 +26,6 @@ interface Project {
   featured?: boolean
 }
 
-// Determine grid span based on image count and aspect ratio
-const getGridSpan = (imageCount: number, aspectRatios: string[] = []): string => {
-  // Projects with 1 image: normal size
-  // Projects with 2-3 images: double width
-  // Projects with 4+ images: double width and height
-  if (imageCount >= 4) {
-    return "md:col-span-2 md:row-span-2"
-  }
-  if (imageCount >= 2) {
-    return "md:col-span-2"
-  }
-  return ""
-}
-
-// Determine aspect ratio class
-const getAspectRatio = (imageCount: number): string => {
-  if (imageCount >= 4) return "aspect-square"
-  if (imageCount >= 2) return "aspect-video"
-  return "aspect-[4/3]"
-}
-
 export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void }) {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)

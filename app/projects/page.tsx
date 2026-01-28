@@ -24,7 +24,7 @@ export default function Projects() {
   }
 
   return (
-    <main className="min-h-screen bg-background overflow-hidden">
+    <main className="min-h-screen bg-background">
       <StickyHeader title="Projects" />
       <section className="pt-20 sm:pt-24 pb-40 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
