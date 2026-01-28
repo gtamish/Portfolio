@@ -156,10 +156,12 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
           <p className="text-muted-foreground text-lg">No projects found in this category</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-[300px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
           {filteredProjects.map((project) => {
             const imageCount = project.images.length
-            const span = getGridSpan(imageCount)
+            const isVisual = project.tag === "Visuals"
+            // Visuals: 1:1 (single grid cell), Case Studies: 2:2 (double width and height)
+            const span = isVisual ? "" : "md:col-span-2 md:row-span-2"
             const heroImage = project.images[0]
             const isImageLoaded = loadedImages.has(heroImage.id)
 
@@ -209,9 +211,9 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
       {/* Fullscreen Image Viewer */}
       {selectedProject && (
         <>
-          {/* Backdrop - Very Low Opacity with Blur */}
+          {/* Backdrop - Increased Opacity with Blur */}
           <div
-            className={`fixed inset-0 z-40 bg-background/10 backdrop-blur-md transition-opacity duration-300 ${
+            className={`fixed inset-0 z-40 bg-background/40 backdrop-blur-md transition-opacity duration-300 ${
               isClosing ? "opacity-0" : "opacity-100"
             }`}
             onClick={handleCloseModal}
@@ -235,7 +237,7 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
 
             {/* Project Info - Top Center */}
             <div className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 max-w-2xl text-center z-20">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">{selectedProject.title}</h2>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6">{selectedProject.title}</h2>
               {selectedProject.description && (
                 <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
               )}
