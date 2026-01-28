@@ -158,7 +158,7 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
   return (
     <>
       {/* Gallery Grid - Decrease opacity when fullscreen is open */}
-      <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-30 pointer-events-none" : "opacity-100"}`}>
+      <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
         {isLoading ? (
           <div className="flex justify-center">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
