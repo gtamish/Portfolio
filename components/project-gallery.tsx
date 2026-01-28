@@ -10,15 +10,26 @@ interface MediaItem {
   description: string
   uploadedAt: string
   url?: string
+  projectId?: string
+}
+
+interface Project {
+  id: string
+  title: string
+  description: string
+  images: MediaItem[]
+  createdAt: string
 }
 
 export function ProjectGallery() {
-  const [media, setMedia] = useState<MediaItem[]>([])
-  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [isClosing, setIsClosing] = useState(false)
+  const [heroImageRotation, setHeroImageRotation] = useState<{ [key: string]: number }>({})
 
   useEffect(() => {
     setMounted(true)
@@ -39,17 +50,35 @@ export function ProjectGallery() {
         const data = await response.json()
         console.log("[v0] Fetched media:", data)
         if (Array.isArray(data)) {
-          setMedia(data.reverse())
+          // Group images by title (project)
+          const groupedByProject: { [key: string]: MediaItem[] } = {}
+          data.forEach((item: MediaItem) => {
+            if (!groupedByProject[item.title]) {
+              groupedByProject[item.title] = []
+            }
+            groupedByProject[item.title].push(item)
+          })
+          
+          // Convert to projects array
+          const projectsArray: Project[] = Object.entries(groupedByProject).map(([title, images]) => ({
+            id: images[0].id,
+            title,
+            description: images[0].description,
+            images: images.reverse(),
+            createdAt: images[0].uploadedAt,
+          }))
+          
+          setProjects(projectsArray.reverse())
         } else {
-          setMedia([])
+          setProjects([])
         }
       } else {
         console.error("[v0] API response not ok:", response.status)
-        setMedia([])
+        setProjects([])
       }
     } catch (error) {
       console.error("[v0] Failed to fetch media:", error)
-      setMedia([])
+      setProjects([])
     } finally {
       setIsLoading(false)
     }
@@ -75,17 +104,47 @@ export function ProjectGallery() {
 
   const handleImageError = (id: string, src: string) => {
     console.error("[v0] Image failed to load:", id, "from URL:", src)
-    // Still mark as loaded so it shows the broken image state
     setLoadedImages((prev) => new Set([...prev, id]))
+  }
+
+  const handleOpenProject = (project: Project) => {
+    setSelectedProject(project)
+    setCurrentImageIndex(0)
   }
 
   const handleCloseModal = () => {
     setIsClosing(true)
     setTimeout(() => {
-      setSelectedItem(null)
+      setSelectedProject(null)
+      setCurrentImageIndex(0)
       setIsClosing(false)
     }, 300)
   }
+
+  const handleNextImage = () => {
+    if (!selectedProject) return
+    setCurrentImageIndex((prev) => (prev + 1) % selectedProject.images.length)
+  }
+
+  const handlePrevImage = () => {
+    if (!selectedProject) return
+    setCurrentImageIndex((prev) => (prev - 1 + selectedProject.images.length) % selectedProject.images.length)
+  }
+
+  // Auto-rotate hero images in cards
+  useEffect(() => {
+    const rotationIntervals = projects.map((project) => {
+      const interval = setInterval(() => {
+        setHeroImageRotation((prev) => ({
+          ...prev,
+          [project.id]: ((prev[project.id] || 0) + 1) % project.images.length,
+        }))
+      }, 4000) // Change image every 4 seconds
+      return interval
+    })
+
+    return () => rotationIntervals.forEach((interval) => clearInterval(interval))
+  }, [projects])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,7 +165,7 @@ export function ProjectGallery() {
     )
   }
 
-  if (media.length === 0) {
+  if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 px-6 text-center animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
         <div className="w-24 h-24 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center mb-6">
@@ -127,55 +186,81 @@ export function ProjectGallery() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
           {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="aspect-[4/3] rounded-2xl bg-accent/10 border border-border/50 animate-pulse"
-            />
+            <div key={i} className="aspect-[4/3] rounded-2xl bg-accent/10 border border-border/50 animate-pulse" />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          {media.map((item, index) => {
-            const isImageLoaded = loadedImages.has(item.id)
+          {projects.map((project, index) => {
+            const heroImageIdx = heroImageRotation[project.id] || 0
+            const heroImage = project.images[heroImageIdx]
+            const isImageLoaded = loadedImages.has(heroImage.id)
+
             return (
               <div
-                key={item.id}
-                onClick={() => setSelectedItem(item)}
-                className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer bg-muted border border-border/50 transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/30"
+                key={project.id}
+                onClick={() => handleOpenProject(project)}
+                className="group relative cursor-pointer rounded-2xl overflow-hidden border border-border/50 transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/30 bg-muted"
                 style={{ animationDelay: `${0.3 + index * 0.05}s` }}
               >
-                {/* Loading State */}
-                {!isImageLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
-                    <Loader2 className="size-6 text-muted-foreground animate-spin" />
-                  </div>
-                )}
-                {/* Image */}
-                <img
-                  src={item.url || `/media/${item.filename}`}
-                  alt={item.title}
-                  loading="lazy"
-                  onLoad={() => handleImageLoad(item.id)}
-                  onError={() => handleImageError(item.id, item.url || `/media/${item.filename}`)}
-                  className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
-                />
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
-                    <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{item.title}</h3>
-                    {item.description && (
-                      <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{item.description}</p>
+                {/* Hero Image Container */}
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  {/* Loading State */}
+                  {!isImageLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
+                      <Loader2 className="size-6 text-muted-foreground animate-spin" />
+                    </div>
+                  )}
+                  {/* Hero Image */}
+                  <img
+                    src={heroImage.url || `/media/${heroImage.filename}`}
+                    alt={project.title}
+                    loading="lazy"
+                    onLoad={() => handleImageLoad(heroImage.id)}
+                    onError={() => handleImageError(heroImage.id, heroImage.url || `/media/${heroImage.filename}`)}
+                    className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
+                  />
+                  {/* Image Counter Badge */}
+                  {project.images.length > 1 && (
+                    <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-background/70 backdrop-blur-sm border border-border/50">
+                      <span className="text-xs font-medium text-foreground">{heroImageIdx + 1}/{project.images.length}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Project Info */}
+                <div className="absolute inset-0 flex flex-col justify-end">
+                  <div className="bg-gradient-to-t from-background/95 via-background/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 sm:p-6">
+                    <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
+                    {project.description && (
+                      <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{project.description}</p>
                     )}
                   </div>
                 </div>
+
+                {/* Thumbnail Strips for Multiple Images */}
+                {project.images.length > 1 && (
+                  <div className="absolute bottom-0 left-0 right-0 flex gap-1 p-2 bg-gradient-to-t from-background/80 to-transparent">
+                    {project.images.slice(0, 4).map((img, idx) => (
+                      <div
+                        key={idx}
+                        className={`h-8 flex-1 rounded-sm overflow-hidden border-2 transition-all ${
+                          idx === heroImageIdx ? "border-accent" : "border-border/50 opacity-60"
+                        }`}
+                      >
+                        <img src={img.url || `/media/${img.filename}`} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
       )}
 
-      {/* Image Viewer Popup */}
-      {selectedItem && (
+      {/* Project Details Modal */}
+      {selectedProject && (
         <>
           {/* Backdrop */}
           <div
@@ -194,20 +279,20 @@ export function ProjectGallery() {
               <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
             </button>
 
-            {/* Navigation */}
-            {media.length > 1 && (
+            {/* Image Navigation */}
+            {selectedProject.images.length > 1 && (
               <>
                 <button
-                  onClick={handlePrevious}
+                  onClick={handlePrevImage}
                   className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
-                  aria-label="Previous project"
+                  aria-label="Previous image"
                 >
                   <ChevronLeft className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
                 </button>
                 <button
-                  onClick={handleNext}
+                  onClick={handleNextImage}
                   className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
-                  aria-label="Next project"
+                  aria-label="Next image"
                 >
                   <ChevronRight className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
                 </button>
@@ -219,25 +304,49 @@ export function ProjectGallery() {
               className="relative w-full max-w-6xl flex flex-col lg:flex-row gap-6 lg:gap-12 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Left: Image */}
-              <div className="flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-background/40 border border-border/30 min-h-[300px] lg:min-h-[500px]">
-                <img
-                  src={selectedItem.url || `/media/${selectedItem.filename}`}
-                  alt={selectedItem.title}
-                  className="max-w-full max-h-[60vh] lg:max-h-[75vh] object-contain p-4"
-                  onError={() => console.error("[v0] Modal image failed to load:", selectedItem.url || `/media/${selectedItem.filename}`)}
-                />
+              {/* Left: Main Image */}
+              <div className="flex-1 flex flex-col gap-4">
+                <div className="flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-background/40 border border-border/30 min-h-[300px] lg:min-h-[500px]">
+                  <img
+                    src={selectedProject.images[currentImageIndex].url || `/media/${selectedProject.images[currentImageIndex].filename}`}
+                    alt={selectedProject.title}
+                    className="max-w-full max-h-[60vh] lg:max-h-[75vh] object-contain p-4"
+                    onError={() => console.error("[v0] Modal image failed to load")}
+                  />
+                </div>
+                
+                {/* Image Thumbnails */}
+                {selectedProject.images.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {selectedProject.images.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`h-16 w-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                          idx === currentImageIndex ? "border-accent" : "border-border/50 opacity-60 hover:opacity-80"
+                        }`}
+                      >
+                        <img src={img.url || `/media/${img.filename}`} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Right: Title and Description */}
               <div className="flex-1 flex flex-col justify-start lg:justify-center lg:sticky lg:top-0 py-4 lg:py-0">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 lg:mb-6">{selectedItem.title}</h2>
-                  {selectedItem.description && (
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 lg:mb-6">{selectedProject.title}</h2>
+                  {selectedProject.description && (
                     <div className="space-y-4">
                       <p className="text-base sm:text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                        {selectedItem.description}
+                        {selectedProject.description}
                       </p>
+                    </div>
+                  )}
+                  {selectedProject.images.length > 1 && (
+                    <div className="mt-4 text-sm text-muted-foreground">
+                      Image {currentImageIndex + 1} of {selectedProject.images.length}
                     </div>
                   )}
                   <div className="mt-8 flex flex-col sm:flex-row gap-3">
