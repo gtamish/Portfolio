@@ -27,7 +27,7 @@ export function Toast({ message, type, onClose }: ToastProps) {
         fixed top-6 right-6 z-50
         flex items-center gap-3
         px-4 py-3 rounded-lg
-        border border-border/50 bg-background/95 backdrop-blur-xl shadow-lg
+        border bg-background/95 backdrop-blur-xl shadow-lg
         transition-all duration-300 ease-out
         ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"}
       `}

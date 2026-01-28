@@ -39,7 +39,7 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center justify-center rounded-full border border-border/50 bg-background/70 p-3 backdrop-blur-xl shadow-lg transition-colors hover:bg-accent hover:text-accent-foreground"
+        className="inline-flex items-center justify-center rounded-full border bg-background/70 p-3 backdrop-blur-xl shadow-lg transition-colors hover:bg-accent hover:text-accent-foreground"
         aria-label="More options"
       >
         <Plus className={`size-5 transition-transform duration-300 ${isOpen ? "rotate-45" : ""}`} strokeWidth={1.5} />
@@ -48,7 +48,7 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
       <div
         className={`
           absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-44
-          rounded-xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-lg
+          rounded-xl border bg-background/90 backdrop-blur-xl shadow-lg
           overflow-hidden
           transition-all duration-300 ease-out origin-bottom
           ${isOpen 

@@ -85,7 +85,7 @@ export function FloatingDock() {
       className={`fixed bottom-6 left-1/2 z-30 -translate-x-1/2 transition-all duration-500 ease-out ${shouldAnimate ? "animate-slide-in-bottom" : ""} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"}`}
       style={shouldAnimate ? { animationDelay: "0.4s" } : undefined}
     >
-      <div className="flex items-center gap-1 rounded-full border border-border/50 bg-background/70 px-3 py-2 shadow-lg backdrop-blur-xl">
+      <div className="flex items-center gap-1 rounded-full border bg-background/70 px-3 py-2 shadow-lg backdrop-blur-xl">
           {items.map((item) => {
             const isActive = getIsActive(item.href)
             return (

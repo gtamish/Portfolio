@@ -195,7 +195,7 @@ export function ProjectGallery() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="aspect-[4/3] rounded-2xl bg-accent/10 border border-border/50 animate-pulse" />
+            <div key={i} className="aspect-[4/3] rounded-2xl bg-accent/10 border animate-pulse" />
           ))}
         </div>
       ) : (
@@ -209,7 +209,7 @@ export function ProjectGallery() {
               <div
                 key={project.id}
                 onClick={() => handleOpenProject(project)}
-                className="group relative cursor-pointer rounded-2xl overflow-hidden border border-border/50 transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/30 bg-muted"
+                className="group relative cursor-pointer rounded-2xl overflow-hidden border transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/30 bg-muted"
                 style={{ animationDelay: `${0.3 + index * 0.05}s` }}
               >
                 {/* Hero Image Container */}
@@ -231,7 +231,7 @@ export function ProjectGallery() {
                   />
                   {/* Image Counter Badge */}
                   {project.images.length > 1 && (
-                    <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-background/70 backdrop-blur-sm border border-border/50">
+                    <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-background/70 backdrop-blur-sm border">
                       <span className="text-xs font-medium text-foreground">{heroImageIdx + 1}/{project.images.length}</span>
                     </div>
                   )}

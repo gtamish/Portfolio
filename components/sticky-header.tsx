@@ -30,7 +30,7 @@ export function StickyHeader({ title }: StickyHeaderProps) {
         fixed inset-x-0 top-0 z-20
         transition-all duration-300 ease-out
         ${isSticky 
-          ? "opacity-100 translate-y-0 bg-background/70 backdrop-blur-xl border-b border-border/40 shadow-lg" 
+          ? "opacity-100 translate-y-0 bg-background/70 backdrop-blur-xl border-b shadow-lg" 
           : "opacity-0 -translate-y-full"
         }
       `}
