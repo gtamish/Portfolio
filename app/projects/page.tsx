@@ -9,6 +9,14 @@ import { ProjectEditModal } from "@/components/project-edit-modal"
 
 export default function Projects() {
   const [showEditModal, setShowEditModal] = useState(false)
+  const [galleryKey, setGalleryKey] = useState(0)
+
+  const handleProjectsUpdated = () => {
+    setGalleryKey(k => k + 1)
+    setTimeout(() => {
+      setShowEditModal(false)
+    }, 300)
+  }
 
   return (
     <main className="min-h-screen bg-background overflow-hidden">
@@ -27,13 +35,17 @@ export default function Projects() {
 
           {/* Gallery */}
           <div className="relative">
-            <ProjectGallery />
+            <ProjectGallery key={galleryKey} />
           </div>
         </div>
       </section>
       <FloatingDock />
       <AnimatedThemeToggle onEditClick={() => setShowEditModal(true)} />
-      <ProjectEditModal isOpen={showEditModal} onClose={() => setShowEditModal(false)} />
+      <ProjectEditModal 
+        isOpen={showEditModal} 
+        onClose={() => setShowEditModal(false)}
+        onProjectsUpdated={handleProjectsUpdated}
+      />
     </main>
   )
 }

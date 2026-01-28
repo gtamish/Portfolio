@@ -209,7 +209,7 @@ export function ProjectGallery() {
               <div
                 key={project.id}
                 onClick={() => handleOpenProject(project)}
-                className="group relative cursor-pointer rounded-2xl overflow-hidden border transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/30 bg-muted"
+                className="group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted"
                 style={{ animationDelay: `${0.3 + index * 0.05}s` }}
               >
                 {/* Hero Image Container */}
@@ -231,7 +231,7 @@ export function ProjectGallery() {
                   />
                   {/* Image Counter Badge */}
                   {project.images.length > 1 && (
-                    <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-background/70 backdrop-blur-sm border">
+                    <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-background/70 backdrop-blur-sm">
                       <span className="text-xs font-medium text-foreground">{heroImageIdx + 1}/{project.images.length}</span>
                     </div>
                   )}

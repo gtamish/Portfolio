@@ -150,3 +150,24 @@ export async function GET() {
     )
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { metadata } = body
+
+    if (!Array.isArray(metadata)) {
+      return NextResponse.json({ error: "Invalid metadata" }, { status: 400 })
+    }
+
+    await saveMetadata(metadata)
+    console.log("[v0] Metadata updated successfully via PATCH")
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("[v0] PATCH error:", error)
+    return NextResponse.json(
+      { error: "Failed to update metadata", details: String(error) },
+      { status: 500 }
+    )
+  }
+}

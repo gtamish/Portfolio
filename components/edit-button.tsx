@@ -22,7 +22,7 @@ export function EditButton({ onEditClick }: EditButtonProps) {
   return (
     <button
       onClick={onEditClick}
-      className="inline-flex items-center justify-center rounded-full border bg-background/70 p-3 backdrop-blur-xl shadow-lg transition-colors hover:bg-accent hover:text-accent-foreground"
+      className="inline-flex items-center justify-center rounded-full bg-background/60 p-3 backdrop-blur-2xl shadow-lg hover:bg-background/70 transition-colors"
       aria-label="Edit projects"
       title="Edit projects"
     >
