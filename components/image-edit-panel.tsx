@@ -50,7 +50,10 @@ export function ImageEditPanel({
       console.error("[v0] Error adding images:", error)
     } finally {
       setIsUploading(false)
-      e.currentTarget.value = ""
+      // Reset the file input using the ref
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
     }
   }
 
