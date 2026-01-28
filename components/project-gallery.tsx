@@ -37,7 +37,10 @@ export function ProjectGallery() {
 
     // Listen for upload events
     const handleProjectUploaded = () => {
-      fetchMedia()
+      // Add slight delay to ensure metadata is fully written
+      setTimeout(() => {
+        fetchMedia()
+      }, 500)
     }
     window.addEventListener('projectUploaded', handleProjectUploaded)
     return () => window.removeEventListener('projectUploaded', handleProjectUploaded)
@@ -45,7 +48,7 @@ export function ProjectGallery() {
 
   const fetchMedia = async () => {
     try {
-      const response = await fetch("/api/upload")
+      const response = await fetch(`/api/upload?t=${Date.now()}`)
       if (response.ok) {
         const data = await response.json()
         console.log("[v0] Fetched media:", data)

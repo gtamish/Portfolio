@@ -93,7 +93,13 @@ export async function GET() {
   try {
     const metadata = await getMetadata()
     console.log("[v0] Returning metadata with", metadata.length, "items")
-    return NextResponse.json(metadata)
+    return NextResponse.json(metadata, {
+      headers: {
+        "Cache-Control": "no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    })
   } catch (error) {
     console.error("[v0] Get media error:", error)
     return NextResponse.json(
