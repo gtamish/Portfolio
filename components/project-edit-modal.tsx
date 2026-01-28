@@ -278,7 +278,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-accent/30 hover:border-accent/50 text-accent hover:bg-accent/5 transition-colors disabled:opacity-50"
+                className="btn-interactive w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-accent/30 hover:border-accent/50 text-accent hover:bg-accent/5 transition-all disabled:opacity-50"
               >
                 {isUploading ? (
                   <>
@@ -319,7 +319,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                           setDraggedProject(null)
                         }
                       }}
-                      className="group p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-move"
+                      className="group btn-interactive p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all cursor-move"
                     >
                       <div className="flex items-start gap-4">
                         <GripVertical className="size-4 text-muted-foreground/50 group-hover:text-muted-foreground mt-1 flex-shrink-0" strokeWidth={1.5} />
@@ -346,7 +346,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
 
                         <button
                           onClick={() => handleDeleteProject(project.id)}
-                          className="flex-shrink-0 p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
+                          className="btn-interactive flex-shrink-0 p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100"
                         >
                           <Trash2 className="size-4" strokeWidth={1.5} />
                         </button>
@@ -367,20 +367,20 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
 
         {/* Footer */}
         {isAuthenticated && (
-          <div className="border-t p-6 flex gap-3 flex-shrink-0">
+          <div className="border-t border-white/10 dark:border-white/5 p-6 flex gap-3 flex-shrink-0">
             <button
               onClick={() => {
                 setIsAuthenticated(false)
                 setProjects([])
               }}
-              className="flex-1 px-4 py-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors"
+              className="btn-interactive flex-1 px-4 py-3 rounded-lg bg-background/40 hover:bg-accent/20 transition-all"
             >
               Close
             </button>
             <button
               onClick={handleSaveChanges}
               disabled={isUploading}
-              className="flex-1 px-4 py-3 rounded-lg bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="btn-interactive flex-1 px-4 py-3 rounded-lg bg-accent text-accent-foreground font-medium hover:opacity-90 transition-all disabled:opacity-50"
             >
               {isUploading ? "Saving..." : "Save Changes"}
             </button>

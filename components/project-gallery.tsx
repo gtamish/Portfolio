@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { getAdaptiveTextColor, getTextColorClass } from "@/lib/color-utils"
+import { useTheme } from "next-themes"
 
 interface MediaItem {
   id: string
@@ -30,6 +32,9 @@ export function ProjectGallery() {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [isClosing, setIsClosing] = useState(false)
   const [heroImageRotation, setHeroImageRotation] = useState<{ [key: string]: number }>({})
+  const [adaptiveTextColor, setAdaptiveTextColor] = useState<'light' | 'dark'>('dark')
+  const imageCanvasRef = useRef<HTMLCanvasElement>(null)
+  const { theme } = useTheme()
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -109,6 +114,13 @@ export function ProjectGallery() {
   const handleImageLoad = (id: string) => {
     console.log("[v0] Image loaded:", id)
     setLoadedImages((prev) => new Set([...prev, id]))
+    
+    // Calculate adaptive text color for modal images
+    if (selectedProject && imageCanvasRef.current) {
+      const isDarkMode = theme === 'dark'
+      const textColor = getAdaptiveTextColor(imageCanvasRef.current, isDarkMode)
+      setAdaptiveTextColor(textColor)
+    }
   }
 
   const handleImageError = (id: string, src: string) => {
@@ -273,7 +285,7 @@ export function ProjectGallery() {
         <>
           {/* Backdrop */}
           <div
-            className={`fixed inset-0 z-40 bg-background/80 backdrop-blur-2xl transition-opacity duration-300 ${isClosing ? "opacity-0" : "opacity-100"}`}
+            className={`fixed inset-0 z-40 backdrop-overlay transition-opacity duration-300 ${isClosing ? "opacity-0" : "opacity-100"}`}
             onClick={handleCloseModal}
           />
 
@@ -282,7 +294,7 @@ export function ProjectGallery() {
             {/* Close Button */}
             <button
               onClick={handleCloseModal}
-              className="absolute top-4 sm:top-6 right-4 sm:right-6 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
+              className="btn-interactive absolute top-4 sm:top-6 right-4 sm:right-6 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 z-10 group"
               aria-label="Close"
             >
               <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
@@ -293,14 +305,14 @@ export function ProjectGallery() {
               <>
                 <button
                   onClick={handlePrevImage}
-                  className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
+                  className="btn-interactive absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 z-10 group"
                   aria-label="Previous image"
                 >
                   <ChevronLeft className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
                 </button>
                 <button
                   onClick={handleNextImage}
-                  className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
+                  className="btn-interactive absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 z-10 group"
                   aria-label="Next image"
                 >
                   <ChevronRight className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
@@ -315,11 +327,25 @@ export function ProjectGallery() {
             >
               {/* Left: Main Image */}
               <div className="flex-1 flex flex-col gap-4">
-                <div className="flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-background/40 border border-border/30 min-h-[300px] lg:min-h-[500px]">
+                <div className="flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-background/40 backdrop-blur min-h-[300px] lg:min-h-[500px]">
+                  <canvas
+                    ref={imageCanvasRef}
+                    style={{ display: 'none' }}
+                  />
                   <img
                     src={selectedProject.images[currentImageIndex].url || `/media/${selectedProject.images[currentImageIndex].filename}`}
                     alt={selectedProject.title}
                     className="max-w-full max-h-[60vh] lg:max-h-[75vh] object-contain p-4"
+                    onLoad={(e) => {
+                      const img = e.target as HTMLImageElement
+                      if (imageCanvasRef.current) {
+                        const ctx = imageCanvasRef.current.getContext('2d')
+                        imageCanvasRef.current.width = img.width
+                        imageCanvasRef.current.height = img.height
+                        ctx?.drawImage(img, 0, 0)
+                      }
+                      handleImageLoad(selectedProject.images[currentImageIndex].id)
+                    }}
                     onError={() => console.error("[v0] Modal image failed to load")}
                   />
                 </div>
@@ -331,8 +357,8 @@ export function ProjectGallery() {
                       <button
                         key={idx}
                         onClick={() => setCurrentImageIndex(idx)}
-                        className={`h-16 w-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-                          idx === currentImageIndex ? "border-accent" : "border-border/50 opacity-60 hover:opacity-80"
+                        className={`btn-interactive h-16 w-20 flex-shrink-0 rounded-lg overflow-hidden transition-all ${
+                          idx === currentImageIndex ? "ring-2 ring-accent ring-offset-2" : "opacity-60 hover:opacity-80"
                         }`}
                       >
                         <img src={img.url || `/media/${img.filename}`} alt="" className="w-full h-full object-cover" />
@@ -344,24 +370,33 @@ export function ProjectGallery() {
 
               {/* Right: Title and Description */}
               <div className="flex-1 flex flex-col justify-start lg:justify-center lg:sticky lg:top-0 py-4 lg:py-0">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 lg:mb-6">{selectedProject.title}</h2>
-                  {selectedProject.description && (
-                    <div className="space-y-4">
-                      <p className="text-base sm:text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                        {selectedProject.description}
+                <div className="popup-container rounded-2xl p-6 sm:p-8 space-y-6">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 lg:mb-6">{selectedProject.title}</h2>
+                    {selectedProject.images[currentImageIndex].description && (
+                      <div className="space-y-4">
+                        <p className="text-base sm:text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                          {selectedProject.images[currentImageIndex].description}
+                        </p>
+                      </div>
+                    )}
+                    {selectedProject.description && !selectedProject.images[currentImageIndex].description && (
+                      <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">{selectedProject.description}</p>
+                    )}
+                  </div>
+
+                  {selectedProject.images.length > 1 && (
+                    <div className="pt-4 border-t border-white/10 dark:border-white/5">
+                      <p className="text-sm text-muted-foreground">
+                        Image {currentImageIndex + 1} of {selectedProject.images.length}
                       </p>
                     </div>
                   )}
-                  {selectedProject.images.length > 1 && (
-                    <div className="mt-4 text-sm text-muted-foreground">
-                      Image {currentImageIndex + 1} of {selectedProject.images.length}
-                    </div>
-                  )}
-                  <div className="mt-8 flex flex-col sm:flex-row gap-3">
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <button
                       onClick={handleCloseModal}
-                      className="px-6 py-3 rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
+                      className="btn-interactive px-6 py-3 rounded-lg bg-foreground text-background font-medium hover:opacity-90"
                     >
                       Close
                     </button>

@@ -22,11 +22,11 @@ export function EditButton({ onEditClick }: EditButtonProps) {
   return (
     <button
       onClick={onEditClick}
-      className="inline-flex items-center justify-center rounded-full bg-background/60 p-3 backdrop-blur-2xl shadow-lg hover:bg-background/70 transition-colors"
+      className="icon-button inline-flex items-center justify-center rounded-full bg-background/60 p-3 backdrop-blur-2xl shadow-lg transition-all"
       aria-label="Edit projects"
       title="Edit projects"
     >
-      <Edit3 className="size-5" strokeWidth={1.5} />
+      <Edit3 className="size-5 transition-transform group-hover:rotate-12" strokeWidth={1.5} />
     </button>
   )
 }

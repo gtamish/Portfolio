@@ -202,6 +202,91 @@
   animation: scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-.animate-scale-down {
-  animation: scale-down 0.3s cubic-bezier(0.36, 0, 0.66, -0.56) both;
+/* Enhanced popup styling with solid background and transparency */
+.popup-container {
+  background-color: oklch(1 0 0 / 92%);
+  backdrop-filter: blur(12px) saturate(180%);
+}
+
+.dark .popup-container {
+  background-color: oklch(0.14 0 0 / 92%);
+  backdrop-filter: blur(12px) saturate(180%);
+}
+
+/* Button interaction states */
+.btn-interactive {
+  position: relative;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.btn-interactive:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn-interactive:active:not(:disabled) {
+  transform: translateY(0px);
+}
+
+.btn-interactive:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-interactive:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Icon button with hover effect */
+.icon-button {
+  transition: all 150ms ease-out;
+}
+
+.icon-button:hover:not(:disabled) {
+  background-color: oklch(0.92 0 0 / 100%);
+}
+
+.dark .icon-button:hover:not(:disabled) {
+  background-color: oklch(0.22 0 0 / 100%);
+}
+
+.icon-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Dropdown item interaction */
+.dropdown-item {
+  transition: all 150ms ease-out;
+}
+
+.dropdown-item:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+  padding-left: calc(1rem + 4px);
+}
+
+/* Link hover effect */
+.link-interactive {
+  position: relative;
+  transition: color 200ms ease-out;
+}
+
+.link-interactive:hover {
+  color: var(--accent);
+}
+
+.link-interactive::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent);
+  transition: width 200ms ease-out;
+}
+
+.link-interactive:hover::after {
+  width: 100%;
 }
