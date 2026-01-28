@@ -243,22 +243,24 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
             onClick={handleCloseModal}
           >
             {/* Header with Close Button */}
-            <div className="flex justify-between items-start p-4 sm:p-6 lg:p-8">
-              <div className="flex-1 flex justify-center">
-                <div className="max-w-2xl text-center">
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6">{selectedProject.title}</h2>
-                  {selectedProject.description && (
-                    <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
-                  )}
-                </div>
-              </div>
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
               <button
                 onClick={handleCloseModal}
-                className="btn-interactive flex-shrink-0 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 group ml-4"
+                className="btn-interactive p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 group"
                 aria-label="Close"
               >
                 <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
               </button>
+            </div>
+
+            {/* Title and Description - Top Center */}
+            <div className="pt-6 sm:pt-8 lg:pt-10 px-4 sm:px-6 lg:px-8">
+              <div className="max-w-2xl mx-auto text-center">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6">{selectedProject.title}</h2>
+                {selectedProject.description && (
+                  <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
+                )}
+              </div>
             </div>
 
             {/* Main Content - Centered Image */}
