@@ -10,8 +10,10 @@ export function useInitialAnimation() {
 
 export function AnimationProvider({ children }: { children: React.ReactNode }) {
   const [shouldAnimate, setShouldAnimate] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     // Check if this is a fresh page load (not client-side navigation)
     const hasAnimated = sessionStorage.getItem("hasAnimated")
     
@@ -20,6 +22,10 @@ export function AnimationProvider({ children }: { children: React.ReactNode }) {
       sessionStorage.setItem("hasAnimated", "true")
     }
   }, [])
+
+  if (!mounted) {
+    return <>{children}</>
+  }
 
   return (
     <AnimationContext.Provider value={shouldAnimate}>

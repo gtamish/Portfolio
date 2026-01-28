@@ -2,34 +2,30 @@
 
 import { Moon, Sun } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">("dark")
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Check for saved theme preference, default to dark
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null
-    const initialTheme = savedTheme || "dark"
-    
-    setTheme(initialTheme)
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-    }
+    setMounted(true)
   }, [])
 
+  if (!mounted) {
+    return (
+      <button
+        disabled
+        className="inline-flex items-center justify-center rounded-full border border-border bg-background p-3 transition-colors"
+        aria-label="Toggle theme"
+      >
+        <Sun className="size-5" />
+      </button>
+    )
+  }
+
   const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light"
-    
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-    }
-    
-    setTheme(newTheme)
-    localStorage.setItem("theme", newTheme)
+    setTheme(theme === "light" ? "dark" : "light")
   }
 
   return (

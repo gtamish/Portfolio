@@ -10,9 +10,14 @@ interface MoreDropdownProps {
 
 export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const isProjectsPage = pathname === "/projects"
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
