@@ -15,8 +15,10 @@ export function ProjectGallery() {
   const [media, setMedia] = useState<MediaItem[]>([])
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     fetchMedia()
   }, [])
 
@@ -25,10 +27,17 @@ export function ProjectGallery() {
       const response = await fetch("/api/upload")
       if (response.ok) {
         const data = await response.json()
-        setMedia(data.reverse())
+        if (Array.isArray(data)) {
+          setMedia(data.reverse())
+        } else {
+          setMedia([])
+        }
+      } else {
+        setMedia([])
       }
     } catch (error) {
       console.error("Failed to fetch media:", error)
+      setMedia([])
     } finally {
       setIsLoading(false)
     }

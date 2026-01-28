@@ -171,7 +171,7 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
                   className="relative aspect-video rounded-lg border-2 border-dashed border-border hover:border-foreground/50 cursor-pointer transition-colors overflow-hidden"
                 >
                   {preview ? (
-                    <img src={preview || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                       <ImageIcon className="size-10 text-muted-foreground" />

@@ -7,6 +7,7 @@ import './globals.css'
 
 import { Geist, Geist_Mono, Source_Serif_4 } from 'next/font/google'
 import { AnimationProvider } from "@/components/animation-provider"
+import { ThemeProvider } from "@/components/theme-provider"
 
 // Initialize fonts
 const _geist = Geist({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
@@ -28,11 +29,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
-        <AnimationProvider>
-          {children}
-        </AnimationProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <AnimationProvider>
+            {children}
+          </AnimationProvider>
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
       </body>

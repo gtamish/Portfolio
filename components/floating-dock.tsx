@@ -24,6 +24,11 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {

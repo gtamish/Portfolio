@@ -8,8 +8,10 @@ interface StickyHeaderProps {
 
 export function StickyHeader({ title }: StickyHeaderProps) {
   const [isSticky, setIsSticky] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const handleScroll = () => {
       setIsSticky(window.scrollY > 200)
     }
@@ -17,6 +19,10 @@ export function StickyHeader({ title }: StickyHeaderProps) {
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  if (!mounted) {
+    return null
+  }
 
   return (
     <div
