@@ -18,6 +18,7 @@ export function ProjectGallery() {
   const [isLoading, setIsLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+  const [isClosing, setIsClosing] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -78,10 +79,18 @@ export function ProjectGallery() {
     setLoadedImages((prev) => new Set([...prev, id]))
   }
 
+  const handleCloseModal = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      setSelectedItem(null)
+      setIsClosing(false)
+    }, 300)
+  }
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!selectedItem) return
-      if (e.key === "Escape") setSelectedItem(null)
+      if (e.key === "Escape") handleCloseModal()
       if (e.key === "ArrowLeft") handlePrevious()
       if (e.key === "ArrowRight") handleNext()
     }
@@ -170,15 +179,15 @@ export function ProjectGallery() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-2xl transition-opacity duration-300 animate-fade-in"
-            onClick={() => setSelectedItem(null)}
+            className={`fixed inset-0 z-40 bg-background/80 backdrop-blur-2xl transition-opacity duration-300 ${isClosing ? "opacity-0" : "opacity-100"}`}
+            onClick={handleCloseModal}
           />
 
           {/* Viewer */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+          <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 ${isClosing ? "animate-scale-down" : "animate-scale-up"}`}>
             {/* Close Button */}
             <button
-              onClick={() => setSelectedItem(null)}
+              onClick={handleCloseModal}
               className="absolute top-4 sm:top-6 right-4 sm:right-6 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
               aria-label="Close"
             >
@@ -233,7 +242,7 @@ export function ProjectGallery() {
                   )}
                   <div className="mt-8 flex flex-col sm:flex-row gap-3">
                     <button
-                      onClick={() => setSelectedItem(null)}
+                      onClick={handleCloseModal}
                       className="px-6 py-3 rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
                     >
                       Close
