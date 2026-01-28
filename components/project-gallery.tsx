@@ -20,6 +20,13 @@ export function ProjectGallery() {
   useEffect(() => {
     setMounted(true)
     fetchMedia()
+
+    // Listen for upload events
+    const handleProjectUploaded = () => {
+      fetchMedia()
+    }
+    window.addEventListener('projectUploaded', handleProjectUploaded)
+    return () => window.removeEventListener('projectUploaded', handleProjectUploaded)
   }, [])
 
   const fetchMedia = async () => {
@@ -78,14 +85,15 @@ export function ProjectGallery() {
 
   if (media.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-20 h-20 rounded-full bg-accent/50 flex items-center justify-center mb-4">
-          <svg className="size-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex flex-col items-center justify-center py-24 px-6 text-center animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+        <div className="w-24 h-24 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center mb-6">
+          <svg className="size-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </div>
-        <p className="text-muted-foreground">No projects uploaded yet</p>
-        <p className="text-sm text-muted-foreground/70 mt-1">Use the upload button to add your first project</p>
+        <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">No projects yet</h3>
+        <p className="text-muted-foreground max-w-md mb-2">Start by uploading your first project to showcase your creative work</p>
+        <p className="text-sm text-muted-foreground/70">Use the upload button in the floating dock to add projects</p>
       </div>
     )
   }
@@ -93,24 +101,24 @@ export function ProjectGallery() {
   return (
     <>
       {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
         {media.map((item) => (
           <div
             key={item.id}
             onClick={() => setSelectedItem(item)}
-            className="group relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer bg-accent/30"
+            className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer bg-accent/10 border border-border/50 transition-all duration-300 hover:border-border hover:shadow-lg hover:shadow-accent/20"
           >
             <img
               src={`/media/${item.filename}`}
               alt={item.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             {/* Hover Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h3 className="text-foreground font-medium text-lg truncate">{item.title}</h3>
+            <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+                <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{item.title}</h3>
                 {item.description && (
-                  <p className="text-muted-foreground text-sm mt-1 line-clamp-2">{item.description}</p>
+                  <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{item.description}</p>
                 )}
               </div>
             </div>
@@ -123,18 +131,19 @@ export function ProjectGallery() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-background/90 backdrop-blur-xl transition-opacity"
+            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-2xl transition-opacity duration-300 animate-fade-in"
             onClick={() => setSelectedItem(null)}
           />
 
           {/* Viewer */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
             {/* Close Button */}
             <button
               onClick={() => setSelectedItem(null)}
-              className="absolute top-6 right-6 p-3 rounded-full bg-background/50 backdrop-blur-sm border border-border/50 hover:bg-accent transition-colors z-10"
+              className="absolute top-4 sm:top-6 right-4 sm:right-6 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
+              aria-label="Close"
             >
-              <X className="size-5 text-foreground" />
+              <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
             </button>
 
             {/* Navigation */}
@@ -142,39 +151,55 @@ export function ProjectGallery() {
               <>
                 <button
                   onClick={handlePrevious}
-                  className="absolute left-6 p-3 rounded-full bg-background/50 backdrop-blur-sm border border-border/50 hover:bg-accent transition-colors z-10"
+                  className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
+                  aria-label="Previous project"
                 >
-                  <ChevronLeft className="size-5 text-foreground" />
+                  <ChevronLeft className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
                 </button>
                 <button
                   onClick={handleNext}
-                  className="absolute right-6 p-3 rounded-full bg-background/50 backdrop-blur-sm border border-border/50 hover:bg-accent transition-colors z-10"
+                  className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
+                  aria-label="Next project"
                 >
-                  <ChevronRight className="size-5 text-foreground" />
+                  <ChevronRight className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
                 </button>
               </>
             )}
 
-            {/* Content */}
+            {/* Content Container */}
             <div
-              className="relative max-w-5xl w-full max-h-[85vh] flex flex-col"
+              className="relative w-full max-w-6xl flex flex-col lg:flex-row gap-6 lg:gap-12 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Title and Description */}
-              <div className="mb-4 text-center">
-                <h2 className="text-2xl font-semibold text-foreground">{selectedItem.title}</h2>
-                {selectedItem.description && (
-                  <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">{selectedItem.description}</p>
-                )}
-              </div>
-
-              {/* Image */}
-              <div className="flex-1 flex items-center justify-center overflow-hidden rounded-xl">
+              {/* Left: Image */}
+              <div className="flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-background/40 border border-border/30 min-h-[300px] lg:min-h-[500px]">
                 <img
                   src={`/media/${selectedItem.filename}`}
                   alt={selectedItem.title}
-                  className="max-w-full max-h-[70vh] object-contain rounded-xl"
+                  className="max-w-full max-h-[60vh] lg:max-h-[75vh] object-contain p-4"
                 />
+              </div>
+
+              {/* Right: Title and Description */}
+              <div className="flex-1 flex flex-col justify-start lg:justify-center lg:sticky lg:top-0 py-4 lg:py-0">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 lg:mb-6">{selectedItem.title}</h2>
+                  {selectedItem.description && (
+                    <div className="space-y-4">
+                      <p className="text-base sm:text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                        {selectedItem.description}
+                      </p>
+                    </div>
+                  )}
+                  <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={() => setSelectedItem(null)}
+                      className="px-6 py-3 rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -13,17 +13,22 @@ export default function Projects() {
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       <StickyHeader title="Projects" />
-      <section className="pt-24 pb-32 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-3xl tracking-tight text-foreground md:text-4xl font-semibold animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-              Projects
+      <section className="pt-24 pb-40 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl sm:text-5xl tracking-tight text-foreground font-bold animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+              My Projects
             </h1>
-            <p className="mt-4 text-base leading-relaxed text-muted-foreground md:text-lg animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-              A collection of my design work and case studies.
+            <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+              A curated collection of my creative work, case studies, and design explorations. Each project represents a unique challenge and learning experience.
             </p>
           </div>
-          <ProjectGallery />
+
+          {/* Gallery */}
+          <div className="relative">
+            <ProjectGallery />
+          </div>
         </div>
       </section>
       <FloatingDock onUploadClick={() => setShowUploadPopup(true)} />

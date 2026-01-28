@@ -63,11 +63,12 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
       })
 
       if (response.ok) {
-        setToast({ message: "File uploaded successfully!", type: "success" })
+        setToast({ message: "Project uploaded successfully!", type: "success" })
         handleReset()
+        // Dispatch custom event to refresh gallery
+        window.dispatchEvent(new CustomEvent('projectUploaded'))
         setTimeout(() => {
           onClose()
-          window.location.reload()
         }, 1500)
       } else {
         throw new Error("Upload failed")
