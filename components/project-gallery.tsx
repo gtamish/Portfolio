@@ -105,6 +105,19 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
     }
   }, [mounted, fetchProjects])
 
+  // Disable scroll when fullscreen is open
+  useEffect(() => {
+    if (selectedProject) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "unset"
+    }
+    
+    return () => {
+      document.body.style.overflow = "unset"
+    }
+  }, [selectedProject])
+
   const handleImageLoad = (id: string) => {
     console.log("[v0] Image loaded:", id)
     setLoadedImages((prev) => new Set([...prev, id]))
