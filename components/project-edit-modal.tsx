@@ -188,11 +188,10 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     try {
       setIsUploading(true)
 
-      // Upload files and add to project
-      const uploadPromises = files.map(async (file) => {
+      // Upload files one by one
+      for (const file of files) {
         const formData = new FormData()
         formData.append("file", file)
-        formData.append("projectId", projectId)
 
         const response = await fetch("/api/upload", {
           method: "POST",
@@ -200,18 +199,30 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
         })
 
         if (!response.ok) throw new Error("Failed to upload image")
-        return response.json()
-      })
+      }
 
-      const uploadResults = await Promise.all(uploadPromises)
-      const newImages = uploadResults.flatMap(result => result.metadata || [])
+      // After all uploads complete, fetch the updated metadata to get all images
+      const metadataResponse = await fetch("/api/upload")
+      if (!metadataResponse.ok) throw new Error("Failed to fetch updated metadata")
+      
+      const allMetadata = await metadataResponse.json()
 
-      // Add new images to the project
-      setProjects(projects.map(p =>
-        p.id === projectId
-          ? { ...p, images: [...p.images, ...newImages] }
-          : p
-      ))
+      // Find images that belong to this project by matching the project title
+      const projectToUpdate = projects.find(p => p.id === projectId)
+      if (!projectToUpdate) throw new Error("Project not found")
+
+      // Get new images that were just uploaded (not already in project)
+      const existingImageIds = new Set(projectToUpdate.images.map(img => img.id))
+      const newImages = allMetadata.filter((img: MediaItem) => !existingImageIds.has(img.id))
+
+      if (newImages.length > 0) {
+        // Add new images to the project
+        setProjects(projects.map(p =>
+          p.id === projectId
+            ? { ...p, images: [...p.images, ...newImages] }
+            : p
+        ))
+      }
 
       toast({
         title: "Success",
