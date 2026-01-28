@@ -16,6 +16,8 @@ interface MediaItem {
   description: string
   uploadedAt: string
   url: string
+  tag?: string
+  featured?: boolean
 }
 
 const METADATA_KEY = "projects-metadata.json"
@@ -70,6 +72,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File
     const title = formData.get("title") as string
     const description = formData.get("description") as string
+    const tag = formData.get("tag") as string
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
@@ -110,6 +113,8 @@ export async function POST(request: NextRequest) {
       description: description || "",
       uploadedAt: new Date().toISOString(),
       url: blob.url,
+      tag: tag || "Visuals",
+      featured: false,
     })
 
     try {
@@ -146,6 +151,54 @@ export async function GET() {
     console.error("[v0] Get media error:", error)
     return NextResponse.json(
       { error: "Failed to get media", details: String(error) },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { metadata } = body
+
+    if (!Array.isArray(metadata)) {
+      return NextResponse.json({ error: "Invalid metadata" }, { status: 400 })
+    }
+
+    await saveMetadata(metadata)
+    console.log("[v0] Metadata updated successfully via PATCH")
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("[v0] PATCH error:", error)
+    return NextResponse.json(
+      { error: "Failed to update metadata", details: String(error) },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id } = body
+
+    if (!id) {
+      return NextResponse.json({ error: "No ID provided" }, { status: 400 })
+    }
+
+    // Get metadata and remove the item with this id
+    const metadata = await getMetadata()
+    const filteredMetadata = metadata.filter(item => item.id !== id)
+
+    // Save updated metadata
+    await saveMetadata(filteredMetadata)
+    console.log("[v0] Item deleted:", id)
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("[v0] DELETE error:", error)
+    return NextResponse.json(
+      { error: "Failed to delete item", details: String(error) },
       { status: 500 }
     )
   }

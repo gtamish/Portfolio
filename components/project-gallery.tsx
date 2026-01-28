@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { useTheme } from "next-themes"
 
 interface MediaItem {
   id: string
@@ -11,6 +12,8 @@ interface MediaItem {
   uploadedAt: string
   url?: string
   projectId?: string
+  tag?: "Visuals" | "Case Studies"
+  featured?: boolean
 }
 
 interface Project {
@@ -19,9 +22,11 @@ interface Project {
   description: string
   images: MediaItem[]
   createdAt: string
+  tag?: "Visuals" | "Case Studies"
+  featured?: boolean
 }
 
-export function ProjectGallery() {
+export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void }) {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -29,79 +34,84 @@ export function ProjectGallery() {
   const [mounted, setMounted] = useState(false)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [isClosing, setIsClosing] = useState(false)
-  const [heroImageRotation, setHeroImageRotation] = useState<{ [key: string]: number }>({})
+  const [thumbRect, setThumbRect] = useState<DOMRect | null>(null)
+  const thumbRef = useRef<HTMLDivElement>(null)
+  const { theme } = useTheme()
 
-  const fetchMedia = useCallback(async () => {
+  // Filter projects based on tag
+  const filteredProjects = filter 
+    ? projects.filter(p => p.tag === filter)
+    : projects
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const fetchProjects = useCallback(async () => {
     try {
-      const response = await fetch(`/api/upload?t=${Date.now()}`)
-      if (response.ok) {
-        const data = await response.json()
-        console.log("[v0] Fetched media:", data)
-        if (Array.isArray(data)) {
-          // Group images by title (project)
-          const groupedByProject: { [key: string]: MediaItem[] } = {}
-          data.forEach((item: MediaItem) => {
-            if (!groupedByProject[item.title]) {
-              groupedByProject[item.title] = []
-            }
-            groupedByProject[item.title].push(item)
-          })
-          
-          // Convert to projects array
-          const projectsArray: Project[] = Object.entries(groupedByProject).map(([title, images]) => ({
-            id: images[0].id,
-            title,
-            description: images[0].description,
-            images: images.reverse(),
-            createdAt: images[0].uploadedAt,
-          }))
-          
-          setProjects(projectsArray.reverse())
-        } else {
-          setProjects([])
+      console.log("[v0] Fetching projects...")
+      const response = await fetch("/api/upload", { method: "GET" })
+      const data = await response.json()
+
+      const groupedByProject: { [key: string]: MediaItem[] } = {}
+      data.forEach((item: MediaItem) => {
+        const projectName = item.title || "Untitled"
+        if (!groupedByProject[projectName]) {
+          groupedByProject[projectName] = []
         }
-      } else {
-        console.error("[v0] API response not ok:", response.status)
-        setProjects([])
-      }
+        groupedByProject[projectName].push(item)
+      })
+
+      const projectsArray: Project[] = Object.entries(groupedByProject).map(([title, images]) => ({
+        id: images[0].id,
+        title,
+        description: images[0].description,
+        images: images.reverse(),
+        createdAt: images[0].uploadedAt,
+        tag: (images[0].tag || "Visuals") as "Visuals" | "Case Studies",
+        featured: images[0].featured || false,
+      }))
+
+      setProjects(projectsArray)
+      console.log("[v0] Projects updated:", projectsArray.length)
     } catch (error) {
-      console.error("[v0] Failed to fetch media:", error)
-      setProjects([])
+      console.error("[v0] Failed to fetch projects:", error)
     } finally {
       setIsLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    setMounted(true)
-    fetchMedia()
-
-    // Listen for upload events
-    const handleProjectUploaded = () => {
-      console.log("[v0] Project uploaded event received!")
-      // Add slight delay to ensure metadata is fully written
-      setTimeout(() => {
-        console.log("[v0] Refreshing gallery after upload")
-        fetchMedia()
-      }, 500)
+    if (mounted) {
+      fetchProjects()
     }
-    window.addEventListener('projectUploaded', handleProjectUploaded)
-    return () => window.removeEventListener('projectUploaded', handleProjectUploaded)
-  }, [fetchMedia])
+  }, [mounted, fetchProjects])
 
-
+  // Disable scroll when fullscreen is open
+  useEffect(() => {
+    if (selectedProject) {
+      document.body.style.overflow = "hidden"
+      onFullscreenChange?.(true)
+    } else {
+      document.body.style.overflow = "unset"
+      onFullscreenChange?.(false)
+    }
+    
+    return () => {
+      document.body.style.overflow = "unset"
+    }
+  }, [selectedProject, onFullscreenChange])
 
   const handleImageLoad = (id: string) => {
     console.log("[v0] Image loaded:", id)
     setLoadedImages((prev) => new Set([...prev, id]))
   }
 
-  const handleImageError = (id: string, src: string) => {
-    console.error("[v0] Image failed to load:", id, "from URL:", src)
-    setLoadedImages((prev) => new Set([...prev, id]))
-  }
-
-  const handleOpenProject = (project: Project) => {
+  const handleOpenProject = (project: Project, event?: React.MouseEvent) => {
+    if (event && thumbRef.current) {
+      const rect = thumbRef.current.getBoundingClientRect()
+      setThumbRect(rect)
+    }
     setSelectedProject(project)
     setCurrentImageIndex(0)
   }
@@ -110,249 +120,222 @@ export function ProjectGallery() {
     setIsClosing(true)
     setTimeout(() => {
       setSelectedProject(null)
-      setCurrentImageIndex(0)
       setIsClosing(false)
+      setThumbRect(null)
     }, 300)
   }
 
   const handleNextImage = () => {
-    if (!selectedProject) return
-    setCurrentImageIndex((prev) => (prev + 1) % selectedProject.images.length)
+    if (selectedProject) {
+      setCurrentImageIndex((prev) => (prev + 1) % selectedProject.images.length)
+    }
   }
 
   const handlePrevImage = () => {
-    if (!selectedProject) return
-    setCurrentImageIndex((prev) => (prev - 1 + selectedProject.images.length) % selectedProject.images.length)
-  }
-
-  // Auto-rotate hero images in cards
-  useEffect(() => {
-    const rotationIntervals = projects.map((project) => {
-      const interval = setInterval(() => {
-        setHeroImageRotation((prev) => ({
-          ...prev,
-          [project.id]: ((prev[project.id] || 0) + 1) % project.images.length,
-        }))
-      }, 4000) // Change image every 4 seconds
-      return interval
-    })
-
-    return () => rotationIntervals.forEach((interval) => clearInterval(interval))
-  }, [projects])
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedProject) return
-      if (e.key === "Escape") handleCloseModal()
-      if (e.key === "ArrowLeft") handlePrevImage()
-      if (e.key === "ArrowRight") handleNextImage()
+    if (selectedProject) {
+      setCurrentImageIndex((prev) => (prev - 1 + selectedProject.images.length) % selectedProject.images.length)
     }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [selectedProject])
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-pulse text-muted-foreground">Loading gallery...</div>
-      </div>
-    )
   }
 
-  if (projects.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 px-6 text-center animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-        <div className="w-24 h-24 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center mb-6">
-          <svg className="size-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">No projects yet</h3>
-        <p className="text-muted-foreground max-w-md mb-2">Start by uploading your first project to showcase your creative work</p>
-        <p className="text-sm text-muted-foreground/70">Use the upload button in the floating dock to add projects</p>
-      </div>
-    )
-  }
+  if (!mounted) return null
 
   return (
     <>
-      {/* Gallery Grid */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="aspect-[4/3] rounded-2xl bg-accent/10 border border-border/50 animate-pulse" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          {projects.map((project, index) => {
-            const heroImageIdx = heroImageRotation[project.id] || 0
-            const heroImage = project.images[heroImageIdx]
-            const isImageLoaded = loadedImages.has(heroImage.id)
+      {/* Gallery Grid - Decrease opacity when fullscreen is open */}
+      <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
+        {isLoading ? (
+          <div className="flex justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="rounded-2xl bg-accent/10 border animate-pulse" />
+              ))}
+            </div>
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-lg">No projects found in this category</p>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
+              {filteredProjects.map((project) => {
+                const imageCount = project.images.length
+                const isVisual = project.tag === "Visuals"
+                // Visuals: 1:1 (single grid cell), Case Studies: 2:2 (double width and height)
+                const span = isVisual ? "" : "md:col-span-2 md:row-span-2"
+                const heroImage = project.images[0]
+                const isImageLoaded = loadedImages.has(heroImage.id)
 
             return (
               <div
                 key={project.id}
-                onClick={() => handleOpenProject(project)}
-                className="group relative cursor-pointer rounded-2xl overflow-hidden border border-border/50 transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/30 bg-muted"
-                style={{ animationDelay: `${0.3 + index * 0.05}s` }}
+                ref={thumbRef}
+                onClick={(e) => handleOpenProject(project, e)}
+                className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted ${span}`}
               >
-                {/* Hero Image Container */}
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  {/* Loading State */}
+                {/* Image Container */}
+                <div className="relative w-full h-full overflow-hidden">
+                  {/* Featured Badge */}
+                  {project.featured && (
+                    <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20">
+                      <div className="featured-chip px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-semibold shadow-lg">
+                        Featured
+                      </div>
+                    </div>
+                  )}
                   {!isImageLoaded && (
                     <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
                       <Loader2 className="size-6 text-muted-foreground animate-spin" />
                     </div>
                   )}
-                  {/* Hero Image */}
                   <img
                     src={heroImage.url || `/media/${heroImage.filename}`}
                     alt={project.title}
                     loading="lazy"
                     onLoad={() => handleImageLoad(heroImage.id)}
-                    onError={() => handleImageError(heroImage.id, heroImage.url || `/media/${heroImage.filename}`)}
-                    className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
+                    className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+                      isImageLoaded ? "opacity-100" : "opacity-0"
+                    }`}
                   />
-                  {/* Image Counter Badge */}
-                  {project.images.length > 1 && (
-                    <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-background/70 backdrop-blur-sm border border-border/50">
-                      <span className="text-xs font-medium text-foreground">{heroImageIdx + 1}/{project.images.length}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Project Info */}
-                <div className="absolute inset-0 flex flex-col justify-end">
-                  <div className="bg-gradient-to-t from-background/95 via-background/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 sm:p-6">
-                    <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
-                    {project.description && (
-                      <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{project.description}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Thumbnail Strips for Multiple Images */}
-                {project.images.length > 1 && (
-                  <div className="absolute bottom-0 left-0 right-0 flex gap-1 p-2 bg-gradient-to-t from-background/80 to-transparent">
-                    {project.images.slice(0, 4).map((img, idx) => (
-                      <div
-                        key={idx}
-                        className={`h-8 flex-1 rounded-sm overflow-hidden border-2 transition-all ${
-                          idx === heroImageIdx ? "border-accent" : "border-border/50 opacity-60"
-                        }`}
-                      >
-                        <img src={img.url || `/media/${img.filename}`} alt="" className="w-full h-full object-cover" />
+                  
+                  {/* Overlay Info */}
+                  <div className="absolute inset-0 flex flex-col justify-end">
+                    {/* Subtle dark overlay for contrast */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {/* Text content */}
+                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
+                      <div>
+                        <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
+                        {project.description && (
+                          <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
+                        )}
+                        {imageCount > 1 && (
+                          <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
+                        )}
                       </div>
-                    ))}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             )
           })}
-        </div>
-      )}
+            </div>
+          </div>
+        )}
+      </div>
 
-      {/* Project Details Modal */}
+      {/* Fullscreen Image Viewer */}
       {selectedProject && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - Increased Opacity with Blur */}
           <div
-            className={`fixed inset-0 z-40 bg-background/80 backdrop-blur-2xl transition-opacity duration-300 ${isClosing ? "opacity-0" : "opacity-100"}`}
+            className={`fixed inset-0 z-40 bg-background/40 backdrop-blur-md transition-opacity duration-300 ${
+              isClosing ? "opacity-0" : "opacity-100"
+            }`}
             onClick={handleCloseModal}
           />
 
-          {/* Viewer */}
-          <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 ${isClosing ? "animate-scale-down" : "animate-scale-up"}`}>
-            {/* Close Button */}
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-4 sm:top-6 right-4 sm:right-6 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
-              aria-label="Close"
-            >
-              <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
-            </button>
-
-            {/* Image Navigation */}
-            {selectedProject.images.length > 1 && (
-              <>
-                <button
-                  onClick={handlePrevImage}
-                  className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
-                </button>
-                <button
-                  onClick={handleNextImage}
-                  className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md border border-border/60 hover:bg-accent hover:border-accent transition-all duration-200 z-10 group"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
-                </button>
-              </>
-            )}
-
-            {/* Content Container */}
-            <div
-              className="relative w-full max-w-6xl flex flex-col lg:flex-row gap-6 lg:gap-12 max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Left: Main Image */}
-              <div className="flex-1 flex flex-col gap-4">
-                <div className="flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-background/40 border border-border/30 min-h-[300px] lg:min-h-[500px]">
-                  <img
-                    src={selectedProject.images[currentImageIndex].url || `/media/${selectedProject.images[currentImageIndex].filename}`}
-                    alt={selectedProject.title}
-                    className="max-w-full max-h-[60vh] lg:max-h-[75vh] object-contain p-4"
-                    onError={() => console.error("[v0] Modal image failed to load")}
-                  />
+          {/* Viewer Container */}
+          <div
+            className={`fixed inset-0 z-50 flex flex-col transition-all duration-500 ${
+              isClosing ? "opacity-0 scale-95" : "opacity-100 scale-100"
+            }`}
+            onClick={handleCloseModal}
+          >
+            {/* Header with Close Button */}
+            <div className="flex justify-between items-start p-4 sm:p-6 lg:p-8">
+              <div className="flex-1 flex justify-center">
+                <div className="max-w-2xl text-center">
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6">{selectedProject.title}</h2>
+                  {selectedProject.description && (
+                    <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
+                  )}
                 </div>
-                
-                {/* Image Thumbnails */}
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="btn-interactive flex-shrink-0 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 group ml-4"
+                aria-label="Close"
+              >
+                <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
+              </button>
+            </div>
+
+            {/* Main Content - Centered Image */}
+            <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+              <img
+                src={
+                  selectedProject.images[currentImageIndex].url ||
+                  `/media/${selectedProject.images[currentImageIndex].filename}`
+                }
+                alt={selectedProject.title}
+                className="max-w-[85vw] max-h-[60vh] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            {/* Footer - Navigation and Thumbnails */}
+            <div className="flex flex-col items-center justify-center gap-4 p-4 sm:p-6 lg:p-8">
+              <div className="flex items-center justify-center gap-4 flex-wrap">
+                {/* Left Button */}
                 {selectedProject.images.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handlePrevImage()
+                    }}
+                    className="btn-interactive p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 group"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
+                  </button>
+                )}
+
+                {/* Thumbnail Strip */}
+                {selectedProject.images.length > 1 && (
+                  <div className="flex gap-2 px-2 overflow-x-auto max-w-[60vw] scrollbar-hide">
                     {selectedProject.images.map((img, idx) => (
                       <button
                         key={idx}
-                        onClick={() => setCurrentImageIndex(idx)}
-                        className={`h-16 w-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-                          idx === currentImageIndex ? "border-accent" : "border-border/50 opacity-60 hover:opacity-80"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setCurrentImageIndex(idx)
+                        }}
+                        className={`btn-interactive h-12 w-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
+                          idx === currentImageIndex ? "border-accent scale-110" : "border-border/50 opacity-60 hover:opacity-100"
                         }`}
                       >
-                        <img src={img.url || `/media/${img.filename}`} alt="" className="w-full h-full object-cover" />
+                        <img
+                          src={img.url || `/media/${img.filename}`}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
                       </button>
                     ))}
                   </div>
                 )}
+
+                {/* Right Button */}
+                {selectedProject.images.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleNextImage()
+                    }}
+                    className="btn-interactive p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 group"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
+                  </button>
+                )}
               </div>
 
-              {/* Right: Title and Description */}
-              <div className="flex-1 flex flex-col justify-start lg:justify-center lg:sticky lg:top-0 py-4 lg:py-0">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 lg:mb-6">{selectedProject.title}</h2>
-                  {selectedProject.description && (
-                    <div className="space-y-4">
-                      <p className="text-base sm:text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                        {selectedProject.description}
-                      </p>
-                    </div>
-                  )}
-                  {selectedProject.images.length > 1 && (
-                    <div className="mt-4 text-sm text-muted-foreground">
-                      Image {currentImageIndex + 1} of {selectedProject.images.length}
-                    </div>
-                  )}
-                  <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={handleCloseModal}
-                      className="px-6 py-3 rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-              </div>
+              {/* Image Counter */}
+              {selectedProject.images.length > 1 && (
+                <p className="text-xs sm:text-sm text-foreground/70">
+                  {currentImageIndex + 1} / {selectedProject.images.length}
+                </p>
+              )}
             </div>
           </div>
         </>

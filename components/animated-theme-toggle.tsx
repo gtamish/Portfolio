@@ -2,17 +2,37 @@
 
 import { useState, useEffect } from "react"
 import { ThemeToggle } from "./theme-toggle"
+import { MoreDropdown } from "./more-dropdown"
+import { EditButton } from "./edit-button"
 import { useInitialAnimation } from "./animation-provider"
 
-export function AnimatedThemeToggle() {
+interface AnimatedThemeToggleProps {
+  onEditClick?: () => void
+}
+
+export function AnimatedThemeToggle({ onEditClick }: AnimatedThemeToggleProps = {}) {
   const shouldAnimate = useInitialAnimation()
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [cursorNearBottom, setCursorNearBottom] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  // Handle cursor position near bottom
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const viewportHeight = window.innerHeight
+      const distanceFromBottom = viewportHeight - e.clientY
+      // Show toggle if cursor is within 100px of bottom
+      setCursorNearBottom(distanceFromBottom < 100)
+    }
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true })
+    return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [])
 
   useEffect(() => {
@@ -23,8 +43,8 @@ export function AnimatedThemeToggle() {
       const scrollableHeight = scrollHeight - viewportHeight
       const isNearBottom = currentScrollY > scrollableHeight - 300
       
-      // Hide only when scrolling down AND not at top AND near bottom
-      if (currentScrollY > lastScrollY && currentScrollY > 100 && isNearBottom) {
+      // Hide only when scrolling down AND not at top AND near bottom, unless cursor is near bottom
+      if (currentScrollY > lastScrollY && currentScrollY > 100 && isNearBottom && !cursorNearBottom) {
         setIsVisible(false)
       } else {
         setIsVisible(true)
@@ -44,13 +64,15 @@ export function AnimatedThemeToggle() {
       window.removeEventListener("scroll", handleScroll)
       if (scrollTimeout) clearTimeout(scrollTimeout)
     }
-  }, [lastScrollY, scrollTimeout])
+  }, [lastScrollY, scrollTimeout, cursorNearBottom])
 
   return (
     <div 
-      className={`fixed bottom-6 right-6 z-30 transition-all duration-500 ease-out ${shouldAnimate ? "animate-slide-in-bottom-right" : ""} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"}`}
+      className={`fixed bottom-6 right-6 z-30 flex items-center gap-2 transition-all duration-500 ease-out ${shouldAnimate ? "animate-slide-in-bottom-right" : ""} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"}`}
       style={shouldAnimate ? { animationDelay: "0.5s" } : undefined}
     >
+      <MoreDropdown />
+      <EditButton onEditClick={onEditClick} />
       <ThemeToggle />
     </div>
   )

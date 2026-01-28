@@ -1,19 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { usePathname } from "next/navigation"
-import { Plus, FileText, Linkedin, Palette, Upload } from "lucide-react"
+import { Plus, FileText, Linkedin, Palette } from "lucide-react"
 
-interface MoreDropdownProps {
-  onUploadClick?: () => void
-}
-
-export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
+export function MoreDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const pathname = usePathname()
-  const isProjectsPage = pathname === "/projects"
 
   useEffect(() => {
     setMounted(true)
@@ -35,26 +28,22 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
     { icon: <Palette className="size-4" strokeWidth={1.5} />, label: "Behance", href: "https://www.behance.net/amishgautam" },
   ]
 
+  if (!mounted) return null
+
   return (
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`
-          inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/70 px-5 py-4 text-sm font-medium shadow-lg backdrop-blur-xl 
-          transition-all duration-200 ease-out outline-none 
-          focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background 
-          active:scale-95
-          ${isOpen ? "opacity-100 bg-accent" : "opacity-50 hover:opacity-100 hover:bg-accent hover:text-accent-foreground"}
-        `}
+        className="icon-button inline-flex items-center justify-center rounded-full bg-background/60 p-3 backdrop-blur-2xl shadow-lg transition-all"
+        aria-label="More options"
       >
         <Plus className={`size-5 transition-transform duration-300 ${isOpen ? "rotate-45" : ""}`} strokeWidth={1.5} />
-        <span>More</span>
       </button>
 
       <div
         className={`
           absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-44
-          rounded-xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-lg
+          rounded-xl popup-container shadow-xl
           overflow-hidden
           transition-all duration-300 ease-out origin-bottom
           ${isOpen 
@@ -64,18 +53,6 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
         `}
       >
         <div className="py-2">
-          {isProjectsPage && (
-            <button
-              onClick={() => {
-                setIsOpen(false)
-                onUploadClick?.()
-              }}
-              className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-foreground/70 hover:text-foreground hover:bg-accent/50 transition-colors"
-            >
-              <Upload className="size-4" strokeWidth={1.5} />
-              <span>Upload</span>
-            </button>
-          )}
           {links.map((link) => (
             <a
               key={link.label}
@@ -83,7 +60,7 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/70 hover:text-foreground hover:bg-accent/50 transition-colors"
+              className="dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/70 transition-all"
             >
               {link.icon}
               <span>{link.label}</span>

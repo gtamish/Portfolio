@@ -65,8 +65,9 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
       if (response.ok) {
         setToast({ message: "Project uploaded successfully!", type: "success" })
         handleReset()
-        // Dispatch custom event to refresh gallery
-        window.dispatchEvent(new CustomEvent('projectUploaded'))
+        // Dispatch custom event to refresh gallery - dispatch immediately
+        console.log("[v0] Dispatching projectUploaded event")
+        window.dispatchEvent(new CustomEvent('projectUploaded', { detail: { timestamp: Date.now() } }))
         setTimeout(() => {
           onClose()
         }, 1500)
@@ -121,11 +122,11 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
       {/* Popup */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
         <div 
-          className="relative w-full max-w-md rounded-2xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl"
+          className="relative w-full max-w-md rounded-2xl border bg-background/95 backdrop-blur-xl shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border/50">
+          <div className="flex items-center justify-between p-6 border-b">
             <h2 className="text-lg font-semibold text-foreground">
               {isAuthenticated ? "Upload Project" : "Authentication Required"}
             </h2>
@@ -162,7 +163,7 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
                     placeholder:text-muted-foreground
                     focus:outline-none focus:ring-2 focus:ring-ring
                     transition-colors
-                    ${passkeyError ? "border-red-500" : "border-border"}
+                    ${passkeyError ? "border-red-500" : "border"}
                   `}
                 />
                 {passkeyError && (
@@ -180,7 +181,7 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
                 {/* File Picker */}
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="relative aspect-video rounded-lg border-2 border-dashed border-border hover:border-foreground/50 cursor-pointer transition-colors overflow-hidden"
+                  className="relative aspect-video rounded-lg border-2 border-dashed hover:border-foreground/50 cursor-pointer transition-colors overflow-hidden"
                 >
                   {preview ? (
                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
@@ -205,7 +206,7 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Project title"
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+                  className="w-full px-4 py-3 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
                 />
 
                 {/* Description */}
@@ -214,7 +215,7 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Project description (optional)"
                   rows={3}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors resize-none"
                 />
 
                 {/* Buttons */}
