@@ -65,8 +65,9 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
       if (response.ok) {
         setToast({ message: "Project uploaded successfully!", type: "success" })
         handleReset()
-        // Dispatch custom event to refresh gallery
-        window.dispatchEvent(new CustomEvent('projectUploaded'))
+        // Dispatch custom event to refresh gallery - dispatch immediately
+        console.log("[v0] Dispatching projectUploaded event")
+        window.dispatchEvent(new CustomEvent('projectUploaded', { detail: { timestamp: Date.now() } }))
         setTimeout(() => {
           onClose()
         }, 1500)

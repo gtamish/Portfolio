@@ -16,7 +16,7 @@ export function ThemeToggle() {
     return (
       <button
         disabled
-        className="inline-flex items-center justify-center rounded-full border border-border bg-background p-3 transition-colors"
+        className="inline-flex items-center justify-center rounded-full border border-border/50 bg-background/70 p-3 backdrop-blur-xl shadow-lg transition-colors"
         aria-label="Toggle theme"
       >
         <Sun className="size-5" />
@@ -31,7 +31,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="inline-flex items-center justify-center rounded-full border border-border bg-background p-3 transition-colors hover:bg-accent hover:text-accent-foreground"
+      className="inline-flex items-center justify-center rounded-full border border-border/50 bg-background/70 p-3 backdrop-blur-xl shadow-lg transition-colors hover:bg-accent hover:text-accent-foreground"
       aria-label="Toggle theme"
     >
       {theme === "light" ? (

@@ -33,6 +33,7 @@ export function ProjectGallery() {
 
   const fetchMedia = useCallback(async () => {
     try {
+      console.log("[v0] Fetching projects...")
       const response = await fetch(`/api/upload?t=${Date.now()}`)
       if (response.ok) {
         const data = await response.json()
@@ -57,6 +58,7 @@ export function ProjectGallery() {
           }))
           
           setProjects(projectsArray.reverse())
+          console.log("[v0] Projects updated:", projectsArray.length)
         } else {
           setProjects([])
         }
@@ -70,21 +72,34 @@ export function ProjectGallery() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [setProjects, setIsLoading])
 
   useEffect(() => {
     setMounted(true)
     fetchMedia()
 
-    // Listen for upload events
+    // Listen for upload events with immediate and polling refresh
     const handleProjectUploaded = () => {
       console.log("[v0] Project uploaded event received!")
-      // Add slight delay to ensure metadata is fully written
+      // Try to fetch immediately
       setTimeout(() => {
-        console.log("[v0] Refreshing gallery after upload")
+        console.log("[v0] Attempting to refresh gallery after upload")
         fetchMedia()
-      }, 500)
+      }, 300)
+      
+      // Also poll for updates in case of timing issues
+      let pollCount = 0
+      const pollInterval = setInterval(() => {
+        pollCount++
+        if (pollCount > 5) {
+          clearInterval(pollInterval)
+          return
+        }
+        console.log("[v0] Polling for updates, attempt", pollCount)
+        fetchMedia()
+      }, 800)
     }
+    
     window.addEventListener('projectUploaded', handleProjectUploaded)
     return () => window.removeEventListener('projectUploaded', handleProjectUploaded)
   }, [fetchMedia])
