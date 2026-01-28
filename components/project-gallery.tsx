@@ -84,18 +84,7 @@ export function ProjectGallery() {
     }
   }
 
-  const handlePrevious = () => {
-    if (!selectedItem) return
-    const currentIndex = media.findIndex((item) => item.id === selectedItem.id)
-    const previousIndex = currentIndex > 0 ? currentIndex - 1 : media.length - 1
-    setSelectedItem(media[previousIndex])
-  }
 
-  const handleNext = () => {
-    const currentIndex = media.findIndex((item) => item.id === selectedItem?.id)
-    const nextIndex = (currentIndex + 1) % media.length
-    setSelectedItem(media[nextIndex])
-  }
 
   const handleImageLoad = (id: string) => {
     console.log("[v0] Image loaded:", id)
@@ -148,14 +137,14 @@ export function ProjectGallery() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedItem) return
+      if (!selectedProject) return
       if (e.key === "Escape") handleCloseModal()
-      if (e.key === "ArrowLeft") handlePrevious()
-      if (e.key === "ArrowRight") handleNext()
+      if (e.key === "ArrowLeft") handlePrevImage()
+      if (e.key === "ArrowRight") handleNextImage()
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [selectedItem, media])
+  }, [selectedProject])
 
   if (isLoading) {
     return (
