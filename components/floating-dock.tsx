@@ -25,9 +25,23 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
   const [lastScrollY, setLastScrollY] = useState(0)
   const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [cursorNearBottom, setCursorNearBottom] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  // Handle cursor position near bottom
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const viewportHeight = window.innerHeight
+      const distanceFromBottom = viewportHeight - e.clientY
+      // Show dock if cursor is within 100px of bottom
+      setCursorNearBottom(distanceFromBottom < 100)
+    }
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true })
+    return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [])
 
   useEffect(() => {
@@ -38,8 +52,8 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
       const scrollableHeight = scrollHeight - viewportHeight
       const isNearBottom = currentScrollY > scrollableHeight - 300
       
-      // Hide only when scrolling down AND not at top AND near bottom
-      if (currentScrollY > lastScrollY && currentScrollY > 100 && isNearBottom) {
+      // Hide only when scrolling down AND not at top AND near bottom, unless cursor is near bottom
+      if (currentScrollY > lastScrollY && currentScrollY > 100 && isNearBottom && !cursorNearBottom) {
         setIsVisible(false)
       } else {
         setIsVisible(true)
@@ -59,7 +73,7 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
       window.removeEventListener("scroll", handleScroll)
       if (scrollTimeout) clearTimeout(scrollTimeout)
     }
-  }, [lastScrollY, scrollTimeout])
+  }, [lastScrollY, scrollTimeout, cursorNearBottom])
 
   const items: DockItem[] = [
     { icon: <Home className="size-5" strokeWidth={1.5} />, label: "Home", href: "/" },
