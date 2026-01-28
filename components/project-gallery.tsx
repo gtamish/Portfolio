@@ -144,19 +144,20 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
 
   return (
     <>
-      {/* Gallery Grid */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-[300px]">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-2xl bg-accent/10 border animate-pulse" />
-          ))}
-        </div>
-      ) : filteredProjects.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-muted-foreground text-lg">No projects found in this category</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
+      {/* Gallery Grid - Decrease opacity when fullscreen is open */}
+      <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-30 pointer-events-none" : "opacity-100"}`}>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-2xl bg-accent/10 border animate-pulse" />
+            ))}
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-lg">No projects found in this category</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
           {filteredProjects.map((project) => {
             const imageCount = project.images.length
             const isVisual = project.tag === "Visuals"
@@ -205,8 +206,9 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
               </div>
             )
           })}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Fullscreen Image Viewer */}
       {selectedProject && (
