@@ -18,8 +18,13 @@ export function AnimatedThemeToggle() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
+      const scrollHeight = document.documentElement.scrollHeight
+      const viewportHeight = window.innerHeight
+      const scrollableHeight = scrollHeight - viewportHeight
+      const isNearBottom = currentScrollY > scrollableHeight - 300
       
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      // Hide only when scrolling down AND not at top AND near bottom
+      if (currentScrollY > lastScrollY && currentScrollY > 100 && isNearBottom) {
         setIsVisible(false)
       } else {
         setIsVisible(true)
@@ -30,7 +35,7 @@ export function AnimatedThemeToggle() {
       if (scrollTimeout) clearTimeout(scrollTimeout)
       const timeout = setTimeout(() => {
         setIsVisible(true)
-      }, 1500)
+      }, 2000)
       setScrollTimeout(timeout)
     }
 

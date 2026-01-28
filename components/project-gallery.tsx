@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, ChevronLeft, ChevronRight } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 
 interface MediaItem {
   id: string
@@ -16,6 +16,7 @@ export function ProjectGallery() {
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     setMounted(true)
@@ -58,10 +59,13 @@ export function ProjectGallery() {
   }
 
   const handleNext = () => {
-    if (!selectedItem) return
-    const currentIndex = media.findIndex((item) => item.id === selectedItem.id)
-    const nextIndex = currentIndex < media.length - 1 ? currentIndex + 1 : 0
+    const currentIndex = media.findIndex((item) => item.id === selectedItem?.id)
+    const nextIndex = (currentIndex + 1) % media.length
     setSelectedItem(media[nextIndex])
+  }
+
+  const handleImageLoad = (id: string) => {
+    setLoadedImages((prev) => new Set([...prev, id]))
   }
 
   useEffect(() => {
@@ -101,30 +105,54 @@ export function ProjectGallery() {
   return (
     <>
       {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-        {media.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => setSelectedItem(item)}
-            className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer bg-accent/10 border border-border/50 transition-all duration-300 hover:border-border hover:shadow-lg hover:shadow-accent/20"
-          >
-            <img
-              src={`/media/${item.filename}`}
-              alt={item.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="aspect-[4/3] rounded-2xl bg-accent/10 border border-border/50 animate-pulse"
             />
-            {/* Hover Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
-                <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{item.title}</h3>
-                {item.description && (
-                  <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{item.description}</p>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+          {media.map((item, index) => {
+            const isImageLoaded = loadedImages.has(item.id)
+            return (
+              <div
+                key={item.id}
+                onClick={() => setSelectedItem(item)}
+                className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer bg-muted border border-border/50 transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/30"
+                style={{ animationDelay: `${0.3 + index * 0.05}s` }}
+              >
+                {/* Loading State */}
+                {!isImageLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
+                    <Loader2 className="size-6 text-muted-foreground animate-spin" />
+                  </div>
                 )}
+                {/* Image */}
+                <img
+                  src={`/media/${item.filename}`}
+                  alt={item.title}
+                  loading="lazy"
+                  onLoad={() => handleImageLoad(item.id)}
+                  className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
+                />
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+                    <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{item.title}</h3>
+                    {item.description && (
+                      <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{item.description}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Image Viewer Popup */}
       {selectedItem && (

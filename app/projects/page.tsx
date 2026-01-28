@@ -13,15 +13,15 @@ export default function Projects() {
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       <StickyHeader title="Projects" />
-      <section className="pt-24 pb-40 px-4 sm:px-6 lg:px-8">
+      <section className="pt-20 sm:pt-24 pb-40 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl tracking-tight text-foreground font-bold animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <div className="text-center mb-12 sm:mb-16">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground font-bold animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
               My Projects
             </h1>
-            <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-              A curated collection of my creative work, case studies, and design explorations. Each project represents a unique challenge and learning experience.
+            <p className="mt-4 sm:mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+              A curated collection of my creative work, case studies, and design explorations.
             </p>
           </div>
 
