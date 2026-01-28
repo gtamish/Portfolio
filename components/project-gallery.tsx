@@ -36,16 +36,18 @@ export function ProjectGallery() {
       const response = await fetch("/api/upload")
       if (response.ok) {
         const data = await response.json()
+        console.log("[v0] Fetched media:", data)
         if (Array.isArray(data)) {
           setMedia(data.reverse())
         } else {
           setMedia([])
         }
       } else {
+        console.error("[v0] API response not ok:", response.status)
         setMedia([])
       }
     } catch (error) {
-      console.error("Failed to fetch media:", error)
+      console.error("[v0] Failed to fetch media:", error)
       setMedia([])
     } finally {
       setIsLoading(false)
@@ -66,6 +68,13 @@ export function ProjectGallery() {
   }
 
   const handleImageLoad = (id: string) => {
+    console.log("[v0] Image loaded:", id)
+    setLoadedImages((prev) => new Set([...prev, id]))
+  }
+
+  const handleImageError = (id: string, src: string) => {
+    console.error("[v0] Image failed to load:", id, "from URL:", src)
+    // Still mark as loaded so it shows the broken image state
     setLoadedImages((prev) => new Set([...prev, id]))
   }
 
@@ -138,6 +147,7 @@ export function ProjectGallery() {
                   alt={item.title}
                   loading="lazy"
                   onLoad={() => handleImageLoad(item.id)}
+                  onError={() => handleImageError(item.id, item.url || `/media/${item.filename}`)}
                   className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                 />
                 {/* Hover Overlay */}
@@ -206,6 +216,7 @@ export function ProjectGallery() {
                   src={selectedItem.url || `/media/${selectedItem.filename}`}
                   alt={selectedItem.title}
                   className="max-w-full max-h-[60vh] lg:max-h-[75vh] object-contain p-4"
+                  onError={() => console.error("[v0] Modal image failed to load:", selectedItem.url || `/media/${selectedItem.filename}`)}
                 />
               </div>
 
