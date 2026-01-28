@@ -1,11 +1,5 @@
 @import "tailwindcss";
 
-@layer theme {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
-  --font-serif: 'Source Serif 4', 'Source Serif 4 Fallback';
-}
-
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -64,8 +58,6 @@
 @layer base {
   * {
     border-color: var(--border);
-    outline-color: var(--ring);
-    outline-width: 50%;
   }
 
   html {
@@ -78,11 +70,43 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: system-ui, -apple-system, sans-serif;
   }
 }
 
-/* Page load animations */
+/* Use [class*="bg-"] selector to safely apply custom utility styles */
+[class*="bg-background"] { background-color: var(--background) !important; }
+[class*="bg-foreground"] { background-color: var(--foreground) !important; }
+[class*="bg-card"] { background-color: var(--card) !important; }
+[class*="bg-popover"] { background-color: var(--popover) !important; }
+[class*="bg-primary"] { background-color: var(--primary) !important; }
+[class*="bg-secondary"] { background-color: var(--secondary) !important; }
+[class*="bg-muted"] { background-color: var(--muted) !important; }
+[class*="bg-accent"] { background-color: var(--accent) !important; }
+[class*="bg-destructive"] { background-color: var(--destructive) !important; }
+[class*="bg-input"] { background-color: var(--input) !important; }
+
+[class*="text-foreground"] { color: var(--foreground) !important; }
+[class*="text-card-foreground"] { color: var(--card-foreground) !important; }
+[class*="text-popover-foreground"] { color: var(--popover-foreground) !important; }
+[class*="text-primary"] { color: var(--primary) !important; }
+[class*="text-primary-foreground"] { color: var(--primary-foreground) !important; }
+[class*="text-secondary"] { color: var(--secondary) !important; }
+[class*="text-secondary-foreground"] { color: var(--secondary-foreground) !important; }
+[class*="text-muted"] { color: var(--muted) !important; }
+[class*="text-muted-foreground"] { color: var(--muted-foreground) !important; }
+[class*="text-accent"] { color: var(--accent) !important; }
+[class*="text-accent-foreground"] { color: var(--accent-foreground) !important; }
+[class*="text-destructive"] { color: var(--destructive) !important; }
+[class*="text-destructive-foreground"] { color: var(--destructive-foreground) !important; }
+
+[class*="border-accent"] { border-color: var(--accent) !important; }
+[class*="border-destructive"] { border-color: var(--destructive) !important; }
+[class*="border-border"] { border-color: var(--border) !important; }
+
+/* Animations */
 @keyframes fade-in-up-blur {
   0% {
     opacity: 0;

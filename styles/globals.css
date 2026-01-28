@@ -82,3 +82,44 @@
     color: var(--foreground);
   }
 }
+
+@layer utilities {
+  /* Background colors */
+  .bg-background { background-color: var(--background); }
+  .bg-foreground { background-color: var(--foreground); }
+  .bg-card { background-color: var(--card); }
+  .bg-popover { background-color: var(--popover); }
+  .bg-primary { background-color: var(--primary); }
+  .bg-secondary { background-color: var(--secondary); }
+  .bg-muted { background-color: var(--muted); }
+  .bg-accent { background-color: var(--accent); }
+  .bg-destructive { background-color: var(--destructive); }
+  .bg-input { background-color: var(--input); }
+  .bg-chart-1 { background-color: var(--chart-1); }
+  .bg-chart-2 { background-color: var(--chart-2); }
+  .bg-chart-3 { background-color: var(--chart-3); }
+  .bg-chart-4 { background-color: var(--chart-4); }
+  .bg-chart-5 { background-color: var(--chart-5); }
+
+  /* Text colors */
+  .text-foreground { color: var(--foreground); }
+  .text-card-foreground { color: var(--card-foreground); }
+  .text-popover-foreground { color: var(--popover-foreground); }
+  .text-primary { color: var(--primary); }
+  .text-primary-foreground { color: var(--primary-foreground); }
+  .text-secondary { color: var(--secondary); }
+  .text-secondary-foreground { color: var(--secondary-foreground); }
+  .text-muted { color: var(--muted); }
+  .text-muted-foreground { color: var(--muted-foreground); }
+  .text-accent { color: var(--accent); }
+  .text-accent-foreground { color: var(--accent-foreground); }
+  .text-destructive { color: var(--destructive); }
+  .text-destructive-foreground { color: var(--destructive-foreground); }
+
+  /* Border colors */
+  .border-accent { border-color: var(--accent); }
+  .border-destructive { border-color: var(--destructive); }
+
+  /* Shadow with accent */
+  .shadow-accent\/30 { box-shadow: 0 0 15px var(--accent, oklch(0.97 0 0) / 0.3); }
+}
