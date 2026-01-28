@@ -223,41 +223,45 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
 
           {/* Viewer Container */}
           <div
-            className={`fixed inset-0 z-50 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 transition-all duration-500 ${
+            className={`fixed inset-0 z-50 flex flex-col transition-all duration-500 ${
               isClosing ? "opacity-0 scale-95" : "opacity-100 scale-100"
             }`}
             onClick={handleCloseModal}
           >
-            {/* Close Button - Top Right */}
-            <button
-              onClick={handleCloseModal}
-              className="btn-interactive absolute top-4 right-4 sm:top-6 sm:right-6 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 z-10 group"
-              aria-label="Close"
-            >
-              <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
-            </button>
-
-            {/* Project Info - Top Center */}
-            <div className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 max-w-2xl text-center z-20">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6">{selectedProject.title}</h2>
-              {selectedProject.description && (
-                <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
-              )}
+            {/* Header with Close Button */}
+            <div className="flex justify-between items-start p-4 sm:p-6 lg:p-8">
+              <div className="flex-1 flex justify-center">
+                <div className="max-w-2xl text-center">
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6">{selectedProject.title}</h2>
+                  {selectedProject.description && (
+                    <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="btn-interactive flex-shrink-0 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 group ml-4"
+                aria-label="Close"
+              >
+                <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
+              </button>
             </div>
 
-            {/* Main Image - Center */}
-            <img
-              src={
-                selectedProject.images[currentImageIndex].url ||
-                `/media/${selectedProject.images[currentImageIndex].filename}`
-              }
-              alt={selectedProject.title}
-              className="max-w-[85vw] max-h-[60vh] object-contain z-20"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {/* Main Content - Centered Image */}
+            <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+              <img
+                src={
+                  selectedProject.images[currentImageIndex].url ||
+                  `/media/${selectedProject.images[currentImageIndex].filename}`
+                }
+                alt={selectedProject.title}
+                className="max-w-[85vw] max-h-[60vh] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
 
-            {/* Bottom Controls - Navigation and Thumbnails */}
-            <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20">
+            {/* Footer - Navigation and Thumbnails */}
+            <div className="flex flex-col items-center justify-center gap-4 p-4 sm:p-6 lg:p-8">
               <div className="flex items-center justify-center gap-4 flex-wrap">
                 {/* Left Button */}
                 {selectedProject.images.length > 1 && (
@@ -314,11 +318,9 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
 
               {/* Image Counter */}
               {selectedProject.images.length > 1 && (
-                <div className="text-center mt-3">
-                  <p className="text-xs sm:text-sm text-foreground/70">
-                    {currentImageIndex + 1} / {selectedProject.images.length}
-                  </p>
-                </div>
+                <p className="text-xs sm:text-sm text-foreground/70">
+                  {currentImageIndex + 1} / {selectedProject.images.length}
+                </p>
               )}
             </div>
           </div>
