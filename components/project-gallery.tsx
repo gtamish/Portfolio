@@ -209,9 +209,9 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
       {/* Fullscreen Image Viewer */}
       {selectedProject && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - Very Low Opacity with Blur */}
           <div
-            className={`fixed inset-0 z-40 bg-background/95 transition-opacity duration-300 ${
+            className={`fixed inset-0 z-40 bg-background/10 backdrop-blur-md transition-opacity duration-300 ${
               isClosing ? "opacity-0" : "opacity-100"
             }`}
             onClick={handleCloseModal}
@@ -219,12 +219,12 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
 
           {/* Viewer Container */}
           <div
-            className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${
+            className={`fixed inset-0 z-50 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 transition-all duration-500 ${
               isClosing ? "opacity-0 scale-95" : "opacity-100 scale-100"
             }`}
             onClick={handleCloseModal}
           >
-            {/* Close Button */}
+            {/* Close Button - Top Right */}
             <button
               onClick={handleCloseModal}
               className="btn-interactive absolute top-4 right-4 sm:top-6 sm:right-6 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 z-10 group"
@@ -233,75 +233,90 @@ export function ProjectGallery({ filter }: { filter?: string | null }) {
               <X className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
             </button>
 
-            {/* Image Navigation */}
-            {selectedProject.images.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handlePrevImage()
-                  }}
-                  className="btn-interactive absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 z-10 group"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleNextImage()
-                  }}
-                  className="btn-interactive absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 z-10 group"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
-                </button>
-              </>
-            )}
+            {/* Project Info - Top Center */}
+            <div className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 max-w-2xl text-center z-20">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">{selectedProject.title}</h2>
+              {selectedProject.description && (
+                <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
+              )}
+            </div>
 
-            {/* Main Image */}
+            {/* Main Image - Center */}
             <img
               src={
                 selectedProject.images[currentImageIndex].url ||
                 `/media/${selectedProject.images[currentImageIndex].filename}`
               }
               alt={selectedProject.title}
-              className="max-w-[90vw] max-h-[90vh] object-contain"
+              className="max-w-[85vw] max-h-[60vh] object-contain z-20"
               onClick={(e) => e.stopPropagation()}
             />
 
-            {/* Image Counter */}
-            {selectedProject.images.length > 1 && (
-              <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-background/60 backdrop-blur-md">
-                <p className="text-sm text-foreground">
-                  {currentImageIndex + 1} / {selectedProject.images.length}
-                </p>
-              </div>
-            )}
-
-            {/* Thumbnail Strip */}
-            {selectedProject.images.length > 1 && (
-              <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 flex gap-2 px-4">
-                {selectedProject.images.map((img, idx) => (
+            {/* Bottom Controls - Navigation and Thumbnails */}
+            <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20">
+              <div className="flex items-center justify-center gap-4 flex-wrap">
+                {/* Left Button */}
+                {selectedProject.images.length > 1 && (
                   <button
-                    key={idx}
                     onClick={(e) => {
                       e.stopPropagation()
-                      setCurrentImageIndex(idx)
+                      handlePrevImage()
                     }}
-                    className={`btn-interactive h-12 w-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
-                      idx === currentImageIndex ? "border-accent scale-110" : "border-border/50 opacity-60 hover:opacity-100"
-                    }`}
+                    className="btn-interactive p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 group"
+                    aria-label="Previous image"
                   >
-                    <img
-                      src={img.url || `/media/${img.filename}`}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                    <ChevronLeft className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
                   </button>
-                ))}
+                )}
+
+                {/* Thumbnail Strip */}
+                {selectedProject.images.length > 1 && (
+                  <div className="flex gap-2 px-2 overflow-x-auto max-w-[60vw] scrollbar-hide">
+                    {selectedProject.images.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setCurrentImageIndex(idx)
+                        }}
+                        className={`btn-interactive h-12 w-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
+                          idx === currentImageIndex ? "border-accent scale-110" : "border-border/50 opacity-60 hover:opacity-100"
+                        }`}
+                      >
+                        <img
+                          src={img.url || `/media/${img.filename}`}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Right Button */}
+                {selectedProject.images.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleNextImage()
+                    }}
+                    className="btn-interactive p-3 rounded-full bg-background/60 backdrop-blur-md hover:bg-accent/20 group"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="size-5 sm:size-6 text-foreground group-hover:scale-110 transition-transform" />
+                  </button>
+                )}
               </div>
-            )}
+
+              {/* Image Counter */}
+              {selectedProject.images.length > 1 && (
+                <div className="text-center mt-3">
+                  <p className="text-xs sm:text-sm text-foreground/70">
+                    {currentImageIndex + 1} / {selectedProject.images.length}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
