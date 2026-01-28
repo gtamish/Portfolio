@@ -33,6 +33,7 @@ async function saveMetadata(metadata: MediaItem[]) {
     const blob = await put(METADATA_KEY, JSON.stringify(metadata, null, 2), {
       access: "public",
       contentType: "application/json",
+      allowOverwrite: true,
     })
     console.log("[v0] Metadata saved to:", blob.url)
   } catch (error) {
