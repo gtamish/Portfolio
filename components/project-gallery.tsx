@@ -13,6 +13,7 @@ interface MediaItem {
   uploadedAt: string
   url?: string
   projectId?: string
+  tag?: "Visuals" | "Case Studies"
 }
 
 interface Project {
@@ -21,9 +22,10 @@ interface Project {
   description: string
   images: MediaItem[]
   createdAt: string
+  tag?: "Visuals" | "Case Studies"
 }
 
-export function ProjectGallery() {
+export function ProjectGallery({ filter }: { filter?: string | null }) {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -33,6 +35,11 @@ export function ProjectGallery() {
   const [isClosing, setIsClosing] = useState(false)
   const [heroImageRotation, setHeroImageRotation] = useState<{ [key: string]: number }>({})
   const { theme } = useTheme()
+
+  // Filter projects based on tag
+  const filteredProjects = filter 
+    ? projects.filter(p => p.tag === filter)
+    : projects
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -201,9 +208,13 @@ export function ProjectGallery() {
             <div key={i} className="aspect-[4/3] rounded-2xl bg-accent/10 border animate-pulse" />
           ))}
         </div>
+      ) : filteredProjects.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-muted-foreground text-lg">No projects found in this category</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          {projects.map((project, index) => {
+          {filteredProjects.map((project, index) => {
             const heroImageIdx = heroImageRotation[project.id] || 0
             const heroImage = project.images[heroImageIdx]
             const isImageLoaded = loadedImages.has(heroImage.id)

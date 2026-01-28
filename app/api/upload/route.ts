@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File
     const title = formData.get("title") as string
     const description = formData.get("description") as string
+    const tag = formData.get("tag") as string
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
       description: description || "",
       uploadedAt: new Date().toISOString(),
       url: blob.url,
+      tag: tag || "Visuals",
     })
 
     try {
