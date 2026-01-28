@@ -280,8 +280,8 @@
 }
 
 .dropdown-item:hover {
-  background-color: var(--accent);
-  color: var(--accent-foreground);
+  background-color: white;
+  color: black;
   padding-left: calc(1rem + 4px);
 }
 
