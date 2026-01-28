@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { X, Lock, Upload, Trash2, GripVertical, Loader2, Plus, Check, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { ProjectUploadDialog } from "./project-upload-dialog"
 
 interface MediaItem {
   id: string
@@ -11,6 +12,7 @@ interface MediaItem {
   description: string
   uploadedAt: string
   url?: string
+  tag?: "Visuals" | "Case Studies"
 }
 
 interface Project {
@@ -19,6 +21,7 @@ interface Project {
   description: string
   images: MediaItem[]
   createdAt: string
+  tag?: "Visuals" | "Case Studies"
 }
 
 interface ProjectEditModalProps {
@@ -40,7 +43,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [draggedProject, setDraggedProject] = useState<string | null>(null)
-  const [selectedTag, setSelectedTag] = useState<"Visuals" | "Case Studies">("Visuals")
+  const [showUploadDialog, setShowUploadDialog] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -127,52 +130,55 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     }
   }
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleUpdateTag = (projectId: string, newTag: "Visuals" | "Case Studies") => {
+    setProjects(projects.map(p => 
+      p.id === projectId ? { ...p, tag: newTag } : p
+    ))
+  }
 
-    setIsUploading(true)
-    setError("")
-
+  const handleProjectUpload = async ({ title, description, tag, images }: { 
+    title: string
+    description: string
+    tag: "Visuals" | "Case Studies"
+    images: Array<{ file: File; id: string; preview: string }>
+  }) => {
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("title", "New Project")
-      formData.append("description", "")
-      formData.append("tag", selectedTag)
+      setIsUploading(true)
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+      // Upload all images
+      const uploadPromises = images.map(async (img) => {
+        const formData = new FormData()
+        formData.append("file", img.file)
+        formData.append("title", title)
+        formData.append("description", description)
+        formData.append("tag", tag)
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) throw new Error("Upload failed")
+        return response.json()
       })
 
-      if (response.ok) {
-        await fetchProjects()
-        toast({
-          title: "Success",
-          description: `Project added as ${selectedTag}.`,
-        })
-        onProjectsUpdated?.()
-      } else {
-        setError("Failed to upload project")
-        toast({
-          title: "Upload Failed",
-          description: "Could not upload the project. Please try again.",
-          variant: "destructive",
-        })
-      }
-    } catch (err) {
-      setError("Upload failed")
+      await Promise.all(uploadPromises)
+
+      await fetchProjects()
+      setShowUploadDialog(false)
       toast({
-        title: "Error",
-        description: "Upload failed. Please try again.",
+        title: "Success",
+        description: `Project "${title}" uploaded with ${images.length} image(s).`,
+      })
+      onProjectsUpdated?.()
+    } catch (err) {
+      toast({
+        title: "Upload Failed",
+        description: "Could not upload project. Please try again.",
         variant: "destructive",
       })
     } finally {
       setIsUploading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
     }
   }
 
@@ -290,12 +296,13 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     try {
       setIsUploading(true)
       
-      // Save projects order and metadata
+      // Save projects order, metadata, and tags
       const metadata = projects.flatMap(project => 
         project.images.map(img => ({
           ...img,
           title: project.title,
           description: project.description,
+          tag: project.tag || "Visuals",
         }))
       )
 
@@ -384,21 +391,12 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
             <div className="space-y-4">
               {/* Add Project Button */}
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setShowUploadDialog(true)}
                 disabled={isUploading}
                 className="btn-interactive w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-accent/30 hover:border-accent/50 text-accent hover:bg-accent/5 transition-all disabled:opacity-50"
               >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="size-4" />
-                    Add New Project
-                  </>
-                )}
+                <Plus className="size-5" />
+                <span>Add New Project</span>
               </button>
               <input
                 ref={fileInputRef}
@@ -460,9 +458,19 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                             placeholder="Project description"
                             rows={2}
                           />
-                          <p className="text-xs text-muted-foreground/70 mt-2">
-                            {project.images.length} image{project.images.length !== 1 ? 's' : ''}
-                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <p className="text-xs text-muted-foreground/70">
+                              {project.images.length} image{project.images.length !== 1 ? 's' : ''}
+                            </p>
+                            <select
+                              value={project.tag || "Visuals"}
+                              onChange={(e) => handleUpdateTag(project.id, e.target.value as "Visuals" | "Case Studies")}
+                              className="text-xs px-2 py-1 rounded bg-white/10 border border-white/20 hover:border-accent/50 text-foreground focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
+                            >
+                              <option value="Visuals">Visuals</option>
+                              <option value="Case Studies">Case Studies</option>
+                            </select>
+                          </div>
                         </div>
 
                         <button
@@ -508,6 +516,14 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
           </div>
         )}
       </div>
+
+      {/* Upload Dialog */}
+      <ProjectUploadDialog
+        isOpen={showUploadDialog}
+        onClose={() => setShowUploadDialog(false)}
+        onUpload={handleProjectUpload}
+        isUploading={isUploading}
+      />
     </div>
   )
 }
