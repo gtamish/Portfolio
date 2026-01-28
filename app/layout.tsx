@@ -8,6 +8,7 @@ import './globals.css'
 import { Geist, Geist_Mono, Source_Serif_4 } from 'next/font/google'
 import { AnimationProvider } from "@/components/animation-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 
 // Initialize fonts
 const _geist = Geist({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
@@ -36,6 +37,7 @@ export default function RootLayout({
             {children}
           </AnimationProvider>
         </ThemeProvider>
+        <Toaster />
         <Analytics />
         <SpeedInsights />
       </body>

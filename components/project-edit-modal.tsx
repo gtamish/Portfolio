@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { X, Lock, Upload, Trash2, GripVertical, Loader2, Plus } from "lucide-react"
+import { X, Lock, Upload, Trash2, GripVertical, Loader2, Plus, Check, AlertCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface MediaItem {
   id: string
@@ -32,6 +33,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [error, setError] = useState("")
   const [isChecking, setIsChecking] = useState(false)
+  const { toast } = useToast()
   
   // Edit mode state
   const [projects, setProjects] = useState<Project[]>([])
@@ -98,12 +100,26 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
       if (response.ok) {
         setIsAuthenticated(true)
         setPasskey("")
+        toast({
+          title: "Authenticated",
+          description: "You can now manage your projects.",
+        })
       } else {
         setError("Invalid passkey")
         setPasskey("")
+        toast({
+          title: "Authentication Failed",
+          description: "Invalid passkey. Please try again.",
+          variant: "destructive",
+        })
       }
     } catch (err) {
       setError("Authentication failed")
+      toast({
+        title: "Error",
+        description: "Authentication failed. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsChecking(false)
     }
@@ -129,12 +145,26 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
 
       if (response.ok) {
         await fetchProjects()
+        toast({
+          title: "Success",
+          description: "Project added successfully.",
+        })
         onProjectsUpdated?.()
       } else {
         setError("Failed to upload project")
+        toast({
+          title: "Upload Failed",
+          description: "Could not upload the project. Please try again.",
+          variant: "destructive",
+        })
       }
     } catch (err) {
       setError("Upload failed")
+      toast({
+        title: "Error",
+        description: "Upload failed. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) {
@@ -147,23 +177,61 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     if (!confirm("Are you sure you want to delete this project?")) return
 
     try {
-      const response = await fetch("/api/delete-project", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${passkey}`,
-        },
-        body: JSON.stringify({ projectId }),
+      // Update local state immediately
+      const projectToDelete = projects.find(p => p.id === projectId)
+      if (!projectToDelete) return
+
+      setProjects(projects.filter(p => p.id !== projectId))
+      
+      // Delete all images for this project
+      const deletePromises = projectToDelete.images.map(img =>
+        fetch("/api/upload", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: img.id }),
+        })
+      )
+
+      await Promise.all(deletePromises)
+      
+      // Save updated metadata
+      const metadata = projects.flatMap(project => 
+        project.images.map(img => ({
+          ...img,
+          title: project.title,
+          description: project.description,
+        }))
+      ).filter(img => img.title !== projectToDelete.title)
+
+      const response = await fetch("/api/upload", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ metadata }),
       })
 
       if (response.ok) {
-        await fetchProjects()
+        toast({
+          title: "Deleted",
+          description: "Project deleted successfully.",
+        })
         onProjectsUpdated?.()
       } else {
         setError("Failed to delete project")
+        await fetchProjects() // Restore on error
+        toast({
+          title: "Error",
+          description: "Failed to delete project.",
+          variant: "destructive",
+        })
       }
     } catch (err) {
       setError("Delete failed")
+      await fetchProjects() // Restore on error
+      toast({
+        title: "Error",
+        description: "Delete failed. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -178,6 +246,29 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     newProjects.splice(targetIndex, 0, draggedProject)
     
     setProjects(newProjects)
+
+    // Save the new order immediately
+    try {
+      const metadata = newProjects.flatMap(project => 
+        project.images.map(img => ({
+          ...img,
+          title: project.title,
+          description: project.description,
+        }))
+      )
+
+      const response = await fetch("/api/upload", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ metadata }),
+      })
+
+      if (response.ok) {
+        console.log("[v0] Project order updated")
+      }
+    } catch (err) {
+      console.error("[v0] Failed to save project order:", err)
+    }
   }
 
   const handleUpdateTitle = (projectId: string, newTitle: string) => {
@@ -212,13 +303,27 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
       })
 
       if (response.ok) {
+        toast({
+          title: "Saved",
+          description: "All changes saved successfully.",
+        })
         onProjectsUpdated?.()
         setError("")
       } else {
         setError("Failed to save changes")
+        toast({
+          title: "Error",
+          description: "Failed to save changes.",
+          variant: "destructive",
+        })
       }
     } catch (err) {
       setError("Save failed")
+      toast({
+        title: "Error",
+        description: "Save failed. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsUploading(false)
     }

@@ -171,3 +171,30 @@ export async function PATCH(request: NextRequest) {
     )
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id } = body
+
+    if (!id) {
+      return NextResponse.json({ error: "No ID provided" }, { status: 400 })
+    }
+
+    // Get metadata and remove the item with this id
+    const metadata = await getMetadata()
+    const filteredMetadata = metadata.filter(item => item.id !== id)
+
+    // Save updated metadata
+    await saveMetadata(filteredMetadata)
+    console.log("[v0] Item deleted:", id)
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("[v0] DELETE error:", error)
+    return NextResponse.json(
+      { error: "Failed to delete item", details: String(error) },
+      { status: 500 }
+    )
+  }
+}
