@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ThemeToggle } from "./theme-toggle"
 import { MoreDropdown } from "./more-dropdown"
 import { EditButton } from "./edit-button"
+import { MobileMenu } from "./mobile-menu"
 import { useInitialAnimation } from "./animation-provider"
 
 interface AnimatedThemeToggleProps {
@@ -71,9 +72,15 @@ export function AnimatedThemeToggle({ onEditClick }: AnimatedThemeToggleProps = 
       className={`fixed bottom-6 right-6 z-30 flex items-center gap-2 transition-all duration-500 ease-out ${shouldAnimate ? "animate-slide-in-bottom-right" : ""} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"}`}
       style={shouldAnimate ? { animationDelay: "0.5s" } : undefined}
     >
-      <MoreDropdown />
-      <EditButton onEditClick={onEditClick} />
-      <ThemeToggle />
+      {/* Mobile menu - visible only on small screens */}
+      <MobileMenu onEditClick={onEditClick} />
+      
+      {/* Desktop menu - hidden on small screens */}
+      <div className="hidden sm:flex items-center gap-2">
+        <MoreDropdown />
+        <EditButton onEditClick={onEditClick} />
+        <ThemeToggle />
+      </div>
     </div>
   )
 }

@@ -78,6 +78,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
+    // Check file size (max 25MB per file)
+    const maxFileSize = 25 * 1024 * 1024 // 25MB
+    if (file.size > maxFileSize) {
+      return NextResponse.json(
+        { error: `File too large. Maximum size is 25MB, got ${(file.size / 1024 / 1024).toFixed(2)}MB` },
+        { status: 413 }
+      )
+    }
+
     console.log("[v0] Uploading file:", file.name, "Size:", file.size)
 
     // Generate unique filename
@@ -94,7 +103,8 @@ export async function POST(request: NextRequest) {
       console.log("[v0] File uploaded to:", blob.url)
     } catch (blobError) {
       console.error("[v0] Blob upload error:", blobError)
-      throw new Error(`Failed to upload file to blob storage: ${String(blobError)}`)
+      const errorMsg = blobError instanceof Error ? blobError.message : String(blobError)
+      throw new Error(`Failed to upload file to blob storage: ${errorMsg}`)
     }
 
     // Update metadata
