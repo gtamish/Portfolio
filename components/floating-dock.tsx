@@ -91,7 +91,8 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
       className={`fixed bottom-6 left-1/2 z-30 -translate-x-1/2 transition-all duration-500 ease-out ${shouldAnimate ? "animate-slide-in-bottom" : ""} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"}`}
       style={shouldAnimate ? { animationDelay: "0.4s" } : undefined}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col items-center gap-3">
+        <MoreDropdown onUploadClick={onUploadClick} />
         <div className="flex items-center gap-1 rounded-full border border-border/50 bg-background/70 px-3 py-2 shadow-lg backdrop-blur-xl">
           {items.map((item) => {
             const isActive = getIsActive(item.href)
@@ -100,7 +101,7 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
                 key={item.label}
                 href={item.href}
                 className={`
-                  inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium
+                  inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium
                   transition-all duration-200 ease-out
                   outline-none
                   focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
@@ -117,7 +118,6 @@ export function FloatingDock({ onUploadClick }: FloatingDockProps) {
             )
           })}
         </div>
-        <MoreDropdown onUploadClick={onUploadClick} />
       </div>
     </nav>
   )

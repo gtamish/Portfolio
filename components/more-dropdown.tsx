@@ -40,7 +40,7 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
-          inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/70 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-xl 
+          inline-flex items-center justify-center rounded-full border border-border/50 bg-background/70 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-xl 
           transition-all duration-200 ease-out outline-none 
           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background 
           active:scale-95
@@ -48,7 +48,6 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
         `}
       >
         <Plus className={`size-5 transition-transform duration-300 ${isOpen ? "rotate-45" : ""}`} strokeWidth={1.5} />
-        <span>More</span>
       </button>
 
       <div
