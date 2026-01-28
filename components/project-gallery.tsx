@@ -32,8 +32,6 @@ export function ProjectGallery() {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [isClosing, setIsClosing] = useState(false)
   const [heroImageRotation, setHeroImageRotation] = useState<{ [key: string]: number }>({})
-  const [adaptiveTextColor, setAdaptiveTextColor] = useState<'light' | 'dark'>('dark')
-  const imageCanvasRef = useRef<HTMLCanvasElement>(null)
   const { theme } = useTheme()
 
   const fetchMedia = useCallback(async () => {
@@ -114,13 +112,6 @@ export function ProjectGallery() {
   const handleImageLoad = (id: string) => {
     console.log("[v0] Image loaded:", id)
     setLoadedImages((prev) => new Set([...prev, id]))
-    
-    // Calculate adaptive text color for modal images
-    if (selectedProject && imageCanvasRef.current) {
-      const isDarkMode = theme === 'dark'
-      const textColor = getAdaptiveTextColor(imageCanvasRef.current, isDarkMode)
-      setAdaptiveTextColor(textColor)
-    }
   }
 
   const handleImageError = (id: string, src: string) => {
@@ -328,24 +319,11 @@ export function ProjectGallery() {
               {/* Left: Main Image */}
               <div className="flex-1 flex flex-col gap-4">
                 <div className="flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-background/40 backdrop-blur min-h-[300px] lg:min-h-[500px]">
-                  <canvas
-                    ref={imageCanvasRef}
-                    style={{ display: 'none' }}
-                  />
                   <img
                     src={selectedProject.images[currentImageIndex].url || `/media/${selectedProject.images[currentImageIndex].filename}`}
                     alt={selectedProject.title}
                     className="max-w-full max-h-[60vh] lg:max-h-[75vh] object-contain p-4"
-                    onLoad={(e) => {
-                      const img = e.target as HTMLImageElement
-                      if (imageCanvasRef.current) {
-                        const ctx = imageCanvasRef.current.getContext('2d')
-                        imageCanvasRef.current.width = img.width
-                        imageCanvasRef.current.height = img.height
-                        ctx?.drawImage(img, 0, 0)
-                      }
-                      handleImageLoad(selectedProject.images[currentImageIndex].id)
-                    }}
+                    onLoad={() => handleImageLoad(selectedProject.images[currentImageIndex].id)}
                     onError={() => console.error("[v0] Modal image failed to load")}
                   />
                 </div>
