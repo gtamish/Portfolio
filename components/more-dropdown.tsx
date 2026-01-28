@@ -1,19 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { usePathname } from "next/navigation"
-import { Plus, FileText, Linkedin, Palette, Upload } from "lucide-react"
+import { Plus, FileText, Linkedin, Palette } from "lucide-react"
 
-interface MoreDropdownProps {
-  onUploadClick?: () => void
-}
-
-export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
+export function MoreDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const pathname = usePathname()
-  const isProjectsPage = pathname === "/projects"
 
   useEffect(() => {
     setMounted(true)
@@ -34,6 +27,8 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
     { icon: <Linkedin className="size-4" strokeWidth={1.5} />, label: "LinkedIn", href: "https://www.linkedin.com/in/amishgautam/" },
     { icon: <Palette className="size-4" strokeWidth={1.5} />, label: "Behance", href: "https://www.behance.net/amishgautam" },
   ]
+
+  if (!mounted) return null
 
   return (
     <div ref={dropdownRef} className="relative">
@@ -58,18 +53,6 @@ export function MoreDropdown({ onUploadClick }: MoreDropdownProps) {
         `}
       >
         <div className="py-2">
-          {isProjectsPage && (
-            <button
-              onClick={() => {
-                setIsOpen(false)
-                onUploadClick?.()
-              }}
-              className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-foreground/70 hover:text-foreground hover:bg-accent/50 transition-colors"
-            >
-              <Upload className="size-4" strokeWidth={1.5} />
-              <span>Upload</span>
-            </button>
-          )}
           {links.map((link) => (
             <a
               key={link.label}

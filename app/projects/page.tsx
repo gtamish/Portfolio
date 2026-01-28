@@ -4,11 +4,11 @@ import { useState } from "react"
 import { FloatingDock } from "@/components/floating-dock"
 import { AnimatedThemeToggle } from "@/components/animated-theme-toggle"
 import { StickyHeader } from "@/components/sticky-header"
-import { UploadPopup } from "@/components/upload-popup"
 import { ProjectGallery } from "@/components/project-gallery"
+import { ProjectEditModal } from "@/components/project-edit-modal"
 
 export default function Projects() {
-  const [showUploadPopup, setShowUploadPopup] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   return (
     <main className="min-h-screen bg-background overflow-hidden">
@@ -32,8 +32,8 @@ export default function Projects() {
         </div>
       </section>
       <FloatingDock />
-      <AnimatedThemeToggle onUploadClick={() => setShowUploadPopup(true)} />
-      <UploadPopup isOpen={showUploadPopup} onClose={() => setShowUploadPopup(false)} />
+      <AnimatedThemeToggle onEditClick={() => setShowEditModal(true)} />
+      <ProjectEditModal isOpen={showEditModal} onClose={() => setShowEditModal(false)} />
     </main>
   )
 }
