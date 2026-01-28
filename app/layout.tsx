@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata } from 'next'
 
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 
 import { Geist, Geist_Mono, Source_Serif_4 } from 'next/font/google'
@@ -33,6 +34,7 @@ export default function RootLayout({
           {children}
         </AnimationProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
