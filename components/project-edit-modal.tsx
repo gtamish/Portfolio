@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { X, Lock, Upload, Trash2, GripVertical, Loader2, Plus, Check, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { ProjectUploadDialog } from "./project-upload-dialog"
+import { ImageEditPanel } from "./image-edit-panel"
 
 interface MediaItem {
   id: string
@@ -143,6 +144,44 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     setProjects(projects.map(p => 
       p.id === projectId ? { ...p, featured: !p.featured } : { ...p, featured: false }
     ))
+  }
+
+  const handleUpdateImage = (projectId: string, imageId: string, updates: Partial<MediaItem>) => {
+    setProjects(projects.map(p => 
+      p.id === projectId 
+        ? {
+            ...p,
+            images: p.images.map(img =>
+              img.id === imageId ? { ...img, ...updates } : img
+            ),
+            // Update project description if updating first image's description
+            description: p.images[0]?.id === imageId ? updates.description || p.description : p.description,
+          }
+        : p
+    ))
+  }
+
+  const handleDeleteImage = (projectId: string, imageId: string) => {
+    setProjects(projects.map(p => 
+      p.id === projectId 
+        ? {
+            ...p,
+            images: p.images.filter(img => img.id !== imageId),
+          }
+        : p
+    ).filter(p => p.images.length > 0))
+  }
+
+  const handleReorderImages = (projectId: string, fromIndex: number, toIndex: number) => {
+    setProjects(projects.map(p => {
+      if (p.id === projectId) {
+        const newImages = [...p.images]
+        const [movedImage] = newImages.splice(fromIndex, 1)
+        newImages.splice(toIndex, 0, movedImage)
+        return { ...p, images: newImages }
+      }
+      return p
+    }))
   }
 
   const handleProjectUpload = async ({ title, description, tag, images }: { 
@@ -305,12 +344,15 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
     try {
       setIsUploading(true)
       
-      // Save projects order, metadata, tags, and featured status
+      // Save projects order, metadata, tags, featured status, and individual image metadata
       const metadata = projects.flatMap(project => 
         project.images.map(img => ({
-          ...img,
-          title: project.title,
-          description: project.description,
+          id: img.id,
+          filename: img.filename,
+          title: img.title || project.title, // Use image title if set, otherwise use project title
+          description: img.description || project.description, // Use image description if set, otherwise use project description
+          uploadedAt: img.uploadedAt,
+          url: img.url,
           tag: project.tag || "Visuals",
           featured: project.featured || false,
         }))
@@ -469,6 +511,15 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                               {project.featured ? "★ Featured" : "☆ Featured"}
                             </button>
                           </div>
+
+                          {/* Image Edit Panel */}
+                          <ImageEditPanel
+                            projectId={project.id}
+                            images={project.images}
+                            onUpdateImage={handleUpdateImage}
+                            onDeleteImage={handleDeleteImage}
+                            onReorderImages={handleReorderImages}
+                          />
                         </div>
 
                         <button
