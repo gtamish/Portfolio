@@ -28,7 +28,7 @@ export function ProjectFilter({ onFilterChange }: ProjectFilterProps) {
         }}
         className={`btn-interactive px-4 py-2 rounded-full text-sm font-medium transition-all ${
           selectedTag === null
-            ? "bg-foreground text-background shadow-md"
+            ? "bg-white text-black dark:bg-white dark:text-black shadow-md"
             : "bg-background/40 text-foreground hover:bg-accent/20 border border-white/10 dark:border-white/5"
         }`}
       >
@@ -40,7 +40,7 @@ export function ProjectFilter({ onFilterChange }: ProjectFilterProps) {
           onClick={() => handleTagClick(tag)}
           className={`btn-interactive px-4 py-2 rounded-full text-sm font-medium transition-all ${
             selectedTag === tag
-              ? "bg-accent text-accent-foreground shadow-md"
+              ? "bg-white text-black dark:bg-white dark:text-black shadow-md"
               : "bg-background/40 text-foreground hover:bg-accent/20 border border-white/10 dark:border-white/5"
           }`}
         >
