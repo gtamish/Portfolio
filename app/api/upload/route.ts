@@ -1,9 +1,12 @@
 import { put, list, del } from "@vercel/blob"
 import { NextRequest, NextResponse } from "next/server"
 
-// Set longer timeout for large file uploads (60 seconds)
+// Set longer timeout and larger body size for large file uploads
 export const config = {
   maxDuration: 60,
+  bodyParser: {
+    sizeLimit: "50mb",
+  },
 }
 
 interface MediaItem {
