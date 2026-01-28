@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 
 interface MediaItem {
@@ -31,22 +31,7 @@ export function ProjectGallery() {
   const [isClosing, setIsClosing] = useState(false)
   const [heroImageRotation, setHeroImageRotation] = useState<{ [key: string]: number }>({})
 
-  useEffect(() => {
-    setMounted(true)
-    fetchMedia()
-
-    // Listen for upload events
-    const handleProjectUploaded = () => {
-      // Add slight delay to ensure metadata is fully written
-      setTimeout(() => {
-        fetchMedia()
-      }, 500)
-    }
-    window.addEventListener('projectUploaded', handleProjectUploaded)
-    return () => window.removeEventListener('projectUploaded', handleProjectUploaded)
-  }, [])
-
-  const fetchMedia = async () => {
+  const fetchMedia = useCallback(async () => {
     try {
       const response = await fetch(`/api/upload?t=${Date.now()}`)
       if (response.ok) {
@@ -85,7 +70,24 @@ export function ProjectGallery() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    setMounted(true)
+    fetchMedia()
+
+    // Listen for upload events
+    const handleProjectUploaded = () => {
+      console.log("[v0] Project uploaded event received!")
+      // Add slight delay to ensure metadata is fully written
+      setTimeout(() => {
+        console.log("[v0] Refreshing gallery after upload")
+        fetchMedia()
+      }, 500)
+    }
+    window.addEventListener('projectUploaded', handleProjectUploaded)
+    return () => window.removeEventListener('projectUploaded', handleProjectUploaded)
+  }, [fetchMedia])
 
 
 
