@@ -1,10 +1,5 @@
+import { put, list, del } from "@vercel/blob"
 import { NextRequest, NextResponse } from "next/server"
-import { writeFile, mkdir, readFile } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
-
-const MEDIA_DIR = path.join(process.cwd(), "public", "media")
-const METADATA_FILE = path.join(MEDIA_DIR, "metadata.json")
 
 interface MediaItem {
   id: string
@@ -12,34 +7,42 @@ interface MediaItem {
   title: string
   description: string
   uploadedAt: string
+  url: string
 }
 
-async function ensureMediaDir() {
-  if (!existsSync(MEDIA_DIR)) {
-    await mkdir(MEDIA_DIR, { recursive: true })
-  }
-}
+const METADATA_KEY = "projects-metadata.json"
 
 async function getMetadata(): Promise<MediaItem[]> {
   try {
-    if (existsSync(METADATA_FILE)) {
-      const data = await readFile(METADATA_FILE, "utf-8")
-      return JSON.parse(data)
+    const { blobs } = await list()
+    const metadataBlob = blobs.find((blob) => blob.pathname === METADATA_KEY)
+    
+    if (metadataBlob) {
+      const response = await fetch(metadataBlob.url)
+      const data = await response.json()
+      return data
     }
-  } catch {
-    // Return empty array if file doesn't exist or is invalid
+  } catch (error) {
+    console.error("[v0] Error getting metadata:", error)
   }
   return []
 }
 
 async function saveMetadata(metadata: MediaItem[]) {
-  await writeFile(METADATA_FILE, JSON.stringify(metadata, null, 2))
+  try {
+    const blob = await put(METADATA_KEY, JSON.stringify(metadata, null, 2), {
+      access: "public",
+      contentType: "application/json",
+    })
+    console.log("[v0] Metadata saved to:", blob.url)
+  } catch (error) {
+    console.error("[v0] Error saving metadata:", error)
+    throw error
+  }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    await ensureMediaDir()
-
     const formData = await request.formData()
     const file = formData.get("file") as File
     const title = formData.get("title") as string
@@ -49,42 +52,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    console.log("[v0] Uploading file:", file.name, "Size:", file.size)
 
     // Generate unique filename
     const id = Date.now().toString()
     const extension = file.name.split(".").pop()
     const filename = `${id}.${extension}`
-    const filepath = path.join(MEDIA_DIR, filename)
 
-    await writeFile(filepath, buffer)
+    // Upload file to Vercel Blob
+    const blob = await put(filename, file, {
+      access: "public",
+    })
+
+    console.log("[v0] File uploaded to:", blob.url)
 
     // Update metadata
     const metadata = await getMetadata()
     metadata.push({
       id,
       filename,
-      title,
-      description,
+      title: title || "Untitled",
+      description: description || "",
       uploadedAt: new Date().toISOString(),
+      url: blob.url,
     })
     await saveMetadata(metadata)
 
-    return NextResponse.json({ success: true, id, filename })
+    return NextResponse.json({ success: true, id, filename, url: blob.url })
   } catch (error) {
-    console.error("Upload error:", error)
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 })
+    console.error("[v0] Upload error:", error)
+    return NextResponse.json(
+      { error: "Upload failed", details: String(error) },
+      { status: 500 }
+    )
   }
 }
 
 export async function GET() {
   try {
-    await ensureMediaDir()
     const metadata = await getMetadata()
+    console.log("[v0] Returning metadata with", metadata.length, "items")
     return NextResponse.json(metadata)
   } catch (error) {
-    console.error("Get media error:", error)
-    return NextResponse.json({ error: "Failed to get media" }, { status: 500 })
+    console.error("[v0] Get media error:", error)
+    return NextResponse.json(
+      { error: "Failed to get media", details: String(error) },
+      { status: 500 }
+    )
   }
 }

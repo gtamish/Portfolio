@@ -71,9 +71,12 @@ export function UploadPopup({ isOpen, onClose }: UploadPopupProps) {
           onClose()
         }, 1500)
       } else {
-        throw new Error("Upload failed")
+        const errorData = await response.json().catch(() => ({}))
+        console.error("[v0] Upload failed:", response.status, errorData)
+        throw new Error(errorData.details || "Upload failed")
       }
-    } catch {
+    } catch (error) {
+      console.error("[v0] Upload error:", error)
       setToast({ message: "Failed to upload file. Please try again.", type: "error" })
     } finally {
       setIsUploading(false)

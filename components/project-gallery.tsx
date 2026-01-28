@@ -9,6 +9,7 @@ interface MediaItem {
   title: string
   description: string
   uploadedAt: string
+  url?: string
 }
 
 export function ProjectGallery() {
@@ -133,7 +134,7 @@ export function ProjectGallery() {
                 )}
                 {/* Image */}
                 <img
-                  src={`/media/${item.filename}`}
+                  src={item.url || `/media/${item.filename}`}
                   alt={item.title}
                   loading="lazy"
                   onLoad={() => handleImageLoad(item.id)}
@@ -202,7 +203,7 @@ export function ProjectGallery() {
               {/* Left: Image */}
               <div className="flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-background/40 border border-border/30 min-h-[300px] lg:min-h-[500px]">
                 <img
-                  src={`/media/${selectedItem.filename}`}
+                  src={selectedItem.url || `/media/${selectedItem.filename}`}
                   alt={selectedItem.title}
                   className="max-w-full max-h-[60vh] lg:max-h-[75vh] object-contain p-4"
                 />
