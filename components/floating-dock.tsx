@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Home, FolderOpen, User } from "lucide-react"
 import { useInitialAnimation } from "./animation-provider"
 
 interface DockItem {
