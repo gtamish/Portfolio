@@ -153,6 +153,24 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
     setBlocks(newBlocks)
   }
 
+  const addImageToGallery = (blockId: string, imageUrl: string) => {
+    if (!imageUrl.trim()) return
+    setBlocks(blocks.map(b => 
+      b.id === blockId 
+        ? { ...b, content: { ...b.content, images: [...(b.content.images || []), imageUrl] } }
+        : b
+    ))
+    setNewImageUrl("")
+  }
+
+  const removeImageFromGallery = (blockId: string, imageUrl: string) => {
+    setBlocks(blocks.map(b => 
+      b.id === blockId 
+        ? { ...b, content: { ...b.content, images: (b.content.images || []).filter(img => img !== imageUrl) } }
+        : b
+    ))
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
     try {
@@ -350,48 +368,101 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                     const block = blocks.find(b => b.id === selectedBlockId)
                     if (!block) return null
 
-                    if (block.type === "heading" || block.type === "paragraph") {
-                      return (
-                        <textarea
-                          value={block.content.text || ""}
-                          onChange={(e) => updateBlock(block.id, { text: e.target.value })}
-                          className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 resize-none"
-                          rows={3}
-                        />
-                      )
-                    }
-                    if (block.type === "image") {
-                      return (
-                        <input
-                          type="url"
-                          value={block.content.url || ""}
-                          onChange={(e) => updateBlock(block.id, { url: e.target.value })}
-                          placeholder="Image URL"
-                          className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
-                        />
-                      )
-                    }
-                    if (block.type === "link") {
-                      return (
-                        <div className="space-y-2">
-                          <input
-                            type="text"
+                    switch (block.type) {
+                      case "heading":
+                      case "paragraph":
+                        return (
+                          <textarea
                             value={block.content.text || ""}
                             onChange={(e) => updateBlock(block.id, { text: e.target.value })}
-                            placeholder="Link text"
-                            className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                            className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 resize-none"
+                            rows={3}
                           />
+                        )
+                      case "image":
+                        return (
                           <input
                             type="url"
                             value={block.content.url || ""}
                             onChange={(e) => updateBlock(block.id, { url: e.target.value })}
-                            placeholder="URL"
+                            placeholder="Image URL"
                             className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                           />
-                        </div>
-                      )
+                        )
+                      case "gallery":
+                        return (
+                          <div className="space-y-2">
+                            {(block.content.images || []).map((img, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-2 bg-muted rounded text-xs">
+                                <span className="truncate text-foreground/70">{img.substring(0, 30)}</span>
+                                <button
+                                  onClick={() => removeImageFromGallery(block.id, img)}
+                                  className="text-red-500 hover:text-red-600"
+                                >
+                                  <Trash2 className="size-3" />
+                                </button>
+                              </div>
+                            ))}
+                            <div className="flex gap-2">
+                              <input
+                                type="url"
+                                value={newImageUrl}
+                                onChange={(e) => setNewImageUrl(e.target.value)}
+                                placeholder="Image URL"
+                                className="flex-1 px-2 py-1 rounded border border-border/30 bg-muted text-xs focus:outline-none focus:ring-2 focus:ring-accent/50"
+                              />
+                              <button
+                                onClick={() => addImageToGallery(block.id, newImageUrl)}
+                                className="px-3 py-1 rounded bg-accent text-background text-xs font-medium hover:bg-accent/90"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      case "link":
+                        return (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={block.content.text || ""}
+                              onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                              placeholder="Link text"
+                              className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                            />
+                            <input
+                              type="url"
+                              value={block.content.url || ""}
+                              onChange={(e) => updateBlock(block.id, { url: e.target.value })}
+                              placeholder="URL"
+                              className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                            />
+                          </div>
+                        )
+                      case "quote":
+                        return (
+                          <textarea
+                            value={block.content.text || ""}
+                            onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                            placeholder="Add quote..."
+                            className="w-full px-3 py-2 rounded border-l-4 border-accent bg-muted text-sm focus:outline-none resize-none italic"
+                            rows={2}
+                          />
+                        )
+                      case "video":
+                        return (
+                          <input
+                            type="url"
+                            value={block.content.url || ""}
+                            onChange={(e) => updateBlock(block.id, { url: e.target.value })}
+                            placeholder="Video/Figma URL"
+                            className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                          />
+                        )
+                      case "divider":
+                      default:
+                        return null
                     }
-                    return null
                   })()}
                 </div>
               )}
@@ -470,19 +541,21 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
           <section className="pb-16 sm:pb-20 lg:pb-24 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               {project.images.length > 1 && (
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">Project Details</h2>
-                  <div className="space-y-8">
-                    {project.images.slice(1).map((image) => (
-                      <div key={image.id} className="rounded-xl overflow-hidden bg-muted">
-                        <img
-                          src={image.url || `/media/${image.filename}`}
-                          alt={image.title}
-                          onLoad={() => handleImageLoad(image.id)}
-                          className="w-full h-auto object-contain"
-                        />
-                      </div>
-                    ))}
+                <div className="space-y-12">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">Project Details</h2>
+                    <div className="grid gap-8">
+                      {project.images.slice(1).map((image, idx) => (
+                        <div key={image.id} className="rounded-xl overflow-hidden bg-muted">
+                          <img
+                            src={image.url || `/media/${image.filename}`}
+                            alt={`${project.title} - Detail ${idx + 2}`}
+                            onLoad={() => handleImageLoad(image.id)}
+                            className="w-full h-auto object-contain"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
