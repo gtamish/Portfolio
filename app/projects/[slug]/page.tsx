@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowLeft, Loader2, Edit2 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { NotionPageBuilder } from "@/components/notion-page-builder"
+import { createSlug, decodeSlug } from "@/lib/slug"
 
 interface MediaItem {
   id: string
@@ -26,7 +27,7 @@ interface Project {
   featured?: boolean
 }
 
-export default function CaseStudyPage({ params }: { params: { id: string } }) {
+export default function CaseStudyPage({ params }: { params: { slug: string } }) {
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
@@ -49,37 +50,53 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
           return
         }
 
-        // Filter to get only case studies (flat MediaItem array)
-        const caseStudyItems = data.filter((item: MediaItem) => item.tag === "Case Studies")
+        // Find project by matching slug with title
+        let foundProject: Project | null = null
         
-        // Get the case study by index
-        const projectIndex = parseInt(params.id)
-        if (projectIndex < caseStudyItems.length) {
-          const caseStudyItem = caseStudyItems[projectIndex]
-          
-          // Group all items with the same title (same project)
-          const projectItems = data.filter((item: MediaItem) => item.title === caseStudyItem.title)
-          
-          setProject({
-            id: caseStudyItem.id,
-            title: caseStudyItem.title,
-            description: caseStudyItem.description,
-            images: projectItems,
-            tag: "Case Studies",
-            featured: caseStudyItem.featured,
-          })
+        if (data.length > 0 && 'images' in data[0]) {
+          // New project-based structure
+          foundProject = data.find((p: Project) => createSlug(p.title) === params.slug) || null
         } else {
-          console.warn("[v0] Case study index out of bounds:", projectIndex)
+          // Old flat image array structure - group by title
+          const groupedByProject: { [key: string]: MediaItem[] } = {}
+          data.forEach((item: MediaItem) => {
+            const projectName = item.title || "Untitled"
+            if (!groupedByProject[projectName]) {
+              groupedByProject[projectName] = []
+            }
+            groupedByProject[projectName].push(item)
+          })
+
+          // Find project by slug
+          for (const [title, images] of Object.entries(groupedByProject)) {
+            if (createSlug(title) === params.slug) {
+              foundProject = {
+                id: images[0].id,
+                title,
+                description: images[0].description || "",
+                images,
+                tag: images[0].tag,
+                featured: images[0].featured,
+              }
+              break
+            }
+          }
+        }
+
+        if (foundProject) {
+          setProject(foundProject)
+        } else {
+          console.error("[v0] Project not found:", params.slug)
         }
       } catch (error) {
-        console.error("[v0] Error fetching case study:", error)
+        console.error("[v0] Failed to fetch project:", error)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchProject()
-  }, [params.id])
+  }, [params.slug])
 
   useEffect(() => {
     const handleScroll = () => {

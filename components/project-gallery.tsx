@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { InteractiveGalleryGrid } from "@/components/interactive-gallery-grid"
+import { createSlug } from "@/lib/slug"
 
 interface MediaItem {
   id: string
@@ -243,8 +244,7 @@ export function ProjectGallery({ filter, onFullscreenChange, isLayoutEditMode }:
                   isEditMode={isLayoutEditMode}
                   onProjectClick={(project) => {
                     if (project.tag === "Case Studies") {
-                      const caseStudyIndex = filteredProjects.filter(p => p.tag === "Case Studies").findIndex(p => p.id === project.id)
-                      router.push(`/projects/case-studies/${caseStudyIndex}`)
+                      router.push(`/projects/${createSlug(project.title)}`)
                     } else {
                       handleOpenProject(project)
                     }
