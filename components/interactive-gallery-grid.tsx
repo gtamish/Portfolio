@@ -232,6 +232,9 @@ export function InteractiveGalleryGrid({
       [projectId]: prev[projectId] === gradientClass ? "" : gradientClass
     }))
   }
+
+  // Calculate text colors for all projects on mount and when projects change
+  useEffect(() => {
     const calculateColors = async () => {
       const colors: { [key: string]: "light" | "dark" } = {}
       for (const project of projects) {
