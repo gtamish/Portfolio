@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { MoreVertical, Moon, Sun, Edit3, FileText, Linkedin, Palette } from "lucide-react"
-import { useTheme } from "next-themes"
+import { MoreVertical, Edit3, FileText, Linkedin, Palette } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 interface MobileMenuProps {
@@ -12,7 +11,6 @@ interface MobileMenuProps {
 export function MobileMenu({ onEditClick }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const { theme, setTheme } = useTheme()
   const pathname = usePathname()
   const isProjectsPage = pathname === "/projects"
   const menuRef = useRef<HTMLDivElement>(null)
@@ -30,11 +28,6 @@ export function MobileMenu({ onEditClick }: MobileMenuProps) {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
-
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light")
-    setIsOpen(false)
-  }
 
   const handleEdit = () => {
     onEditClick?.()
@@ -72,19 +65,6 @@ export function MobileMenu({ onEditClick }: MobileMenuProps) {
         `}
       >
         <div className="py-2">
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="dropdown-item w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/70 transition-all"
-          >
-            {theme === "light" ? (
-              <Moon className="size-4" />
-            ) : (
-              <Sun className="size-4" />
-            )}
-            <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
-          </button>
-
           {/* Edit Button - Only on Projects Page */}
           {isProjectsPage && (
             <button
@@ -97,7 +77,7 @@ export function MobileMenu({ onEditClick }: MobileMenuProps) {
           )}
 
           {/* Divider */}
-          <div className="my-2 h-px bg-white/10" />
+          <div className="my-2 h-px bg-border" />
 
           {/* External Links */}
           {externalLinks.map((link) => (

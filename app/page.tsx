@@ -11,20 +11,20 @@ export default function Home() {
       <section className="flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 pt-20">
         <div className="max-w-3xl text-center space-y-6 sm:space-y-8">
           {/* Name */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight text-foreground font-bold animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight text-foreground font-bold animate-fade-in-up mix-blend-mode-lighten" style={{ animationDelay: "0.1s" }}>
             Amish Gautam
           </h1>
 
           {/* Title */}
           <div className="space-y-2">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground/90 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground/90 animate-fade-in-up mix-blend-mode-lighten" style={{ animationDelay: "0.2s" }}>
               Experience Designer
             </h2>
             <div className="h-1 w-16 bg-accent mx-auto animate-fade-in-up" style={{ animationDelay: "0.25s" }}></div>
           </div>
 
           {/* Description */}
-          <p className="text-sm sm:text-base md:text-lg leading-relaxed text-foreground/70 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+          <p className="text-sm sm:text-base md:text-lg leading-relaxed text-foreground/70 max-w-2xl mx-auto animate-fade-in-up mix-blend-mode-lighten" style={{ animationDelay: "0.3s" }}>
             Senior Experience Designer with 4+ years of expertise in crafting elegant digital experiences. I specialize in UI/UX design, SaaS platforms, and visual communication that bridges the gap between aesthetics and functionality.
           </p>
 

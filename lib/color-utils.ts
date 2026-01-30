@@ -19,7 +19,7 @@ export function getAdaptiveTextColor(
 export function getTextColorClass(textColor: 'light' | 'dark'): string {
   return textColor === 'light'
     ? 'text-white drop-shadow-lg'
-    : 'text-black drop-shadow-md'
+    : 'text-foreground drop-shadow-md'
 }
 
 /**

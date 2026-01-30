@@ -97,8 +97,8 @@ export function FloatingDock() {
                   outline-none
                   focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
                   ${isActive 
-                    ? "bg-black text-white dark:bg-white dark:text-black shadow-md opacity-100" 
-                    : "opacity-60 hover:opacity-100 hover:bg-accent/30"
+                    ? "bg-white text-black shadow-md opacity-100" 
+                    : "opacity-60 hover:opacity-100 hover:bg-muted hover:text-muted-foreground"
                   }
                 `}
               >

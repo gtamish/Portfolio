@@ -1,17 +1,27 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ThemeToggle } from "./theme-toggle"
 import { MoreDropdown } from "./more-dropdown"
 import { EditButton } from "./edit-button"
+import { LayoutToggle } from "./layout-toggle"
 import { MobileMenu } from "./mobile-menu"
 import { useInitialAnimation } from "./animation-provider"
 
 interface AnimatedThemeToggleProps {
   onEditClick?: () => void
+  isLayoutEditMode?: boolean
+  onLayoutEditModeChange?: (mode: boolean) => void
+  onLayoutSave?: () => void
+  isLayoutSaving?: boolean
 }
 
-export function AnimatedThemeToggle({ onEditClick }: AnimatedThemeToggleProps = {}) {
+export function AnimatedThemeToggle({ 
+  onEditClick, 
+  isLayoutEditMode = false,
+  onLayoutEditModeChange,
+  onLayoutSave,
+  isLayoutSaving = false,
+}: AnimatedThemeToggleProps = {}) {
   const shouldAnimate = useInitialAnimation()
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
@@ -78,8 +88,35 @@ export function AnimatedThemeToggle({ onEditClick }: AnimatedThemeToggleProps = 
       {/* Desktop menu - hidden on small screens */}
       <div className="hidden sm:flex items-center gap-2">
         <MoreDropdown />
+        <LayoutToggle 
+          isEditMode={isLayoutEditMode}
+          onToggle={() => {
+            if (!isLayoutEditMode) {
+              const passkey = prompt("Enter passkey to edit layout:")
+              if (passkey) {
+                fetch("/api/verify-passkey", {
+                  method: "POST",
+                  body: JSON.stringify({ passkey }),
+                }).then(res => {
+                  if (res.ok) {
+                    onLayoutEditModeChange?.(true)
+                  } else {
+                    alert("Invalid passkey")
+                  }
+                }).catch(err => {
+                  console.error("[v0] Passkey verification failed:", err)
+                  alert("Error verifying passkey")
+                })
+              }
+            } else {
+              onLayoutEditModeChange?.(false)
+            }
+          }}
+          onSave={onLayoutSave}
+          isSaving={isLayoutSaving}
+        />
         <EditButton onEditClick={onEditClick} />
-        <ThemeToggle />
+        {/* Theme toggle hidden for now - will be re-added in future */}
       </div>
     </div>
   )

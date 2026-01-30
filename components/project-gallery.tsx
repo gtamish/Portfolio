@@ -1,8 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { useTheme } from "next-themes"
+import { InteractiveGalleryGrid } from "@/components/interactive-gallery-grid"
+import { createSlug } from "@/lib/slug"
 
 interface MediaItem {
   id: string
@@ -26,13 +29,16 @@ interface Project {
   featured?: boolean
 }
 
-export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void }) {
+export function ProjectGallery({ filter, onFullscreenChange, isLayoutEditMode }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void; isLayoutEditMode?: boolean }) {
+  const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+  const [imageDimensions, setImageDimensions] = useState<{ [key: string]: { width: number; height: number } }>({})
+  const [customLayout, setCustomLayout] = useState<{ [key: string]: { colSpan: number; rowSpan: number } }>({})
   const [isClosing, setIsClosing] = useState(false)
   const [thumbRect, setThumbRect] = useState<DOMRect | null>(null)
   const thumbRef = useRef<HTMLDivElement>(null)
@@ -53,24 +59,35 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
       const response = await fetch("/api/upload", { method: "GET" })
       const data = await response.json()
 
-      const groupedByProject: { [key: string]: MediaItem[] } = {}
-      data.forEach((item: MediaItem) => {
-        const projectName = item.title || "Untitled"
-        if (!groupedByProject[projectName]) {
-          groupedByProject[projectName] = []
-        }
-        groupedByProject[projectName].push(item)
-      })
+      let projectsArray: Project[] = []
 
-      const projectsArray: Project[] = Object.entries(groupedByProject).map(([title, images]) => ({
-        id: images[0].id,
-        title,
-        description: images[0].description,
-        images: images.reverse(),
-        createdAt: images[0].uploadedAt,
-        tag: (images[0].tag || "Visuals") as "Visuals" | "Case Studies",
-        featured: images[0].featured || false,
-      }))
+      // Handle both structures: new project-based and old flat image array
+      if (Array.isArray(data) && data.length > 0) {
+        if ('images' in data[0]) {
+          // New project-based structure
+          projectsArray = data as Project[]
+        } else {
+          // Old flat image array structure - group by title
+          const groupedByProject: { [key: string]: MediaItem[] } = {}
+          data.forEach((item: MediaItem) => {
+            const projectName = item.title || "Untitled"
+            if (!groupedByProject[projectName]) {
+              groupedByProject[projectName] = []
+            }
+            groupedByProject[projectName].push(item)
+          })
+
+          projectsArray = Object.entries(groupedByProject).map(([title, images]) => ({
+            id: images[0].id,
+            title,
+            description: images[0].description,
+            images: images.reverse(),
+            createdAt: images[0].uploadedAt,
+            tag: (images[0].tag || "Visuals") as "Visuals" | "Case Studies",
+            featured: images[0].featured || false,
+          }))
+        }
+      }
 
       setProjects(projectsArray)
       console.log("[v0] Projects updated:", projectsArray.length)
@@ -84,6 +101,25 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
   useEffect(() => {
     if (mounted) {
       fetchProjects()
+      // Load custom layout
+      fetch("/api/gallery-layout")
+        .then(res => {
+          if (!res.ok) {
+            console.warn("[v0] Layout API returned status:", res.status)
+            return {}
+          }
+          return res.json()
+        })
+        .then(layout => {
+          if (layout && typeof layout === "object") {
+            console.log("[v0] Layout loaded:", Object.keys(layout).length, "items")
+            setCustomLayout(layout)
+          }
+        })
+        .catch(err => {
+          console.warn("[v0] Failed to load layout:", err.message)
+          setCustomLayout({})
+        })
     }
   }, [mounted, fetchProjects])
 
@@ -107,6 +143,19 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     setLoadedImages((prev) => new Set([...prev, id]))
   }
 
+  const handleImageLoadWithDimensions = (id: string, event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget
+    const dimensions = {
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+    }
+    setImageDimensions((prev) => ({
+      ...prev,
+      [id]: dimensions,
+    }))
+    handleImageLoad(id)
+  }
+
   const handleOpenProject = (project: Project, event?: React.MouseEvent) => {
     if (event && thumbRef.current) {
       const rect = thumbRef.current.getBoundingClientRect()
@@ -114,6 +163,10 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     }
     setSelectedProject(project)
     setCurrentImageIndex(0)
+  }
+
+  const handleCaseStudyClick = (projectIndex: number) => {
+    router.push(`/projects/case-studies/${projectIndex}`)
   }
 
   const handleCloseModal = () => {
@@ -137,6 +190,25 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     }
   }
 
+  // Calculate grid span based on aspect ratio or custom layout
+  const getGridSpan = (projectId: string, id: string): string => {
+    // Check custom layout first
+    if (customLayout[projectId]) {
+      const { colSpan, rowSpan } = customLayout[projectId]
+      return `col-span-${colSpan} row-span-${rowSpan}`
+    }
+
+    // Fall back to aspect ratio-based sizing
+    const dims = imageDimensions[id]
+    if (!dims) return "col-span-1 row-span-1"
+    
+    const aspectRatio = dims.width / dims.height
+    
+    if (aspectRatio > 1.5) return "col-span-2 row-span-1"
+    if (aspectRatio < 0.67) return "col-span-1 row-span-2"
+    return "col-span-1 row-span-1"
+  }
+
   if (!mounted) return null
 
   return (
@@ -145,10 +217,15 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
       <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
         {isLoading ? (
           <div className="flex justify-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="rounded-2xl bg-accent/10 border animate-pulse" />
-              ))}
+            <div className="space-y-8">
+              {/* Case Study Skeleton */}
+              <div className="rounded-2xl bg-accent/10 border animate-pulse h-96" />
+              {/* Visual Projects Grid Skeleton */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="rounded-2xl bg-accent/10 border animate-pulse" />
+                ))}
+              </div>
             </div>
           </div>
         ) : filteredProjects.length === 0 ? (
@@ -157,68 +234,23 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
-              {filteredProjects.map((project) => {
-                const imageCount = project.images.length
-                const isVisual = project.tag === "Visuals"
-                // Visuals: 1:1 (single grid cell), Case Studies: 2:2 (double width and height)
-                const span = isVisual ? "" : "md:col-span-2 md:row-span-2"
-                const heroImage = project.images[0]
-                const isImageLoaded = loadedImages.has(heroImage.id)
-
-            return (
-              <div
-                key={project.id}
-                ref={thumbRef}
-                onClick={(e) => handleOpenProject(project, e)}
-                className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted ${span}`}
-              >
-                {/* Image Container */}
-                <div className="relative w-full h-full overflow-hidden">
-                  {/* Featured Badge */}
-                  {project.featured && (
-                    <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20">
-                      <div className="featured-chip px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-semibold shadow-lg">
-                        Featured
-                      </div>
-                    </div>
-                  )}
-                  {!isImageLoaded && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
-                      <Loader2 className="size-6 text-muted-foreground animate-spin" />
-                    </div>
-                  )}
-                  <img
-                    src={heroImage.url || `/media/${heroImage.filename}`}
-                    alt={project.title}
-                    loading="lazy"
-                    onLoad={() => handleImageLoad(heroImage.id)}
-                    className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-                      isImageLoaded ? "opacity-100" : "opacity-0"
-                    }`}
-                  />
-                  
-                  {/* Overlay Info */}
-                  <div className="absolute inset-0 flex flex-col justify-end">
-                    {/* Subtle dark overlay for contrast */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    {/* Text content */}
-                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
-                      <div>
-                        <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
-                        {project.description && (
-                          <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
-                        )}
-                        {imageCount > 1 && (
-                          <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+            <div className="w-full space-y-6 sm:space-y-8">
+              {/* Interactive Grid for ALL Projects (Case Studies + Visuals) */}
+              {filteredProjects.length > 0 && (
+                <InteractiveGalleryGrid
+                  projects={filteredProjects}
+                  currentLayout={customLayout}
+                  onLayoutChange={setCustomLayout}
+                  isEditMode={isLayoutEditMode}
+                  onProjectClick={(project) => {
+                    if (project.tag === "Case Studies") {
+                      router.push(`/projects/${createSlug(project.title)}`)
+                    } else {
+                      handleOpenProject(project)
+                    }
+                  }}
+                />
+              )}
             </div>
           </div>
         )}
@@ -256,9 +288,9 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
             {/* Title and Description - Top Center */}
             <div className="pt-6 sm:pt-8 lg:pt-10 px-4 sm:px-6 lg:px-8">
               <div className="max-w-2xl mx-auto text-center">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6">{selectedProject.title}</h2>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6 mix-blend-mode-lighten">{selectedProject.title}</h2>
                 {selectedProject.description && (
-                  <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
+                  <p className="text-sm sm:text-base text-foreground/80 mix-blend-mode-lighten">{selectedProject.description}</p>
                 )}
               </div>
             </div>

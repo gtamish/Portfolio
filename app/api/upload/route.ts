@@ -149,8 +149,48 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const metadata = await getMetadata()
-    console.log("[v0] Returning metadata with", metadata.length, "items")
-    return NextResponse.json(metadata, {
+    
+    // Ensure Align360 is included in the metadata
+    const hasAlign360 = metadata.some((item: any) => item.title === "Align360")
+    
+    if (!hasAlign360) {
+      try {
+        // Read local Align360 metadata from the file system
+        const localMetadata = await import("fs").then(fs => 
+          fs.promises.readFile("public/media/metadata.json", "utf-8")
+        ).then(data => JSON.parse(data)).catch(() => [])
+        
+        // Merge local metadata with blob metadata
+        const mergedMetadata = [...metadata, ...localMetadata]
+        
+        // Save merged metadata to blob for persistence
+        if (localMetadata.length > 0) {
+          await saveMetadata(mergedMetadata).catch(err => {
+            console.warn("[v0] Failed to auto-save Align360 to blob:", err)
+          })
+        }
+        
+        console.log("[v0] Returning metadata with", mergedMetadata.length, "items (including Align360)")
+        return NextResponse.json(mergedMetadata, {
+          headers: {
+            "Cache-Control": "no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+          },
+        })
+      } catch (localError) {
+        console.warn("[v0] Could not load local metadata:", localError)
+      }
+    }
+    
+    // Enforce one featured project rule: only Align360 should be featured
+    const processedMetadata = metadata.map((item: any) => ({
+      ...item,
+      featured: item.title === "Align360" ? true : false
+    }))
+    
+    console.log("[v0] Returning metadata with", processedMetadata.length, "items")
+    return NextResponse.json(processedMetadata, {
       headers: {
         "Cache-Control": "no-store, must-revalidate",
         "Pragma": "no-cache",

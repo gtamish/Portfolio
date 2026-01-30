@@ -455,7 +455,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
 
       <div className="relative w-full max-w-2xl rounded-2xl glass-panel shadow-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10 dark:border-white/5 flex-shrink-0">
+          <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
           <h2 className="text-lg font-semibold text-foreground">Manage Projects</h2>
           <button
             onClick={onClose}
@@ -524,7 +524,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                           setDraggedProject(null)
                         }
                       }}
-                      className="group btn-interactive p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all cursor-move"
+                      className="group btn-interactive p-4 rounded-lg bg-background/40 hover:bg-accent/10 transition-all cursor-move"
                     >
                       <div className="flex items-start gap-4">
                         <GripVertical className="size-4 text-muted-foreground/50 group-hover:text-muted-foreground mt-1 flex-shrink-0" strokeWidth={1.5} />
@@ -551,7 +551,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                             <select
                               value={project.tag || "Visuals"}
                               onChange={(e) => handleUpdateTag(project.id, e.target.value as "Visuals" | "Case Studies")}
-                              className="text-xs px-2 py-1 rounded bg-white/10 border border-white/20 hover:border-accent/50 text-foreground focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
+                              className="text-xs px-2 py-1 rounded bg-background border border-border hover:border-accent/50 text-foreground focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
                             >
                               <option value="Visuals">Visuals</option>
                               <option value="Case Studies">Case Studies</option>
@@ -560,8 +560,8 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
                               onClick={() => handleToggleFeatured(project.id)}
                               className={`btn-interactive text-xs px-3 py-1 rounded-full font-medium transition-all ${
                                 project.featured
-                                  ? "bg-gradient-to-r from-orange-400 to-pink-400 text-white"
-                                  : "bg-white/10 border border-white/20 hover:border-accent/50 text-foreground"
+                                  ? "bg-gradient-to-r from-orange-400 to-pink-400 text-background"
+                                  : "bg-background border border-border hover:border-accent/50 text-foreground"
                               }`}
                             >
                               {project.featured ? "★ Featured" : "☆ Featured"}
@@ -601,7 +601,7 @@ export function ProjectEditModal({ isOpen, onClose, onProjectsUpdated }: Project
 
         {/* Footer */}
         {isAuthenticated && (
-          <div className="border-t border-white/10 dark:border-white/5 p-6 flex gap-3 flex-shrink-0">
+          <div className="border-t border-border p-6 flex gap-3 flex-shrink-0">
             <button
               onClick={() => {
                 setIsAuthenticated(false)

@@ -310,6 +310,18 @@
   width: 100%;
 }
 
+/* Generic link hover with grey background */
+a:not([class]) {
+  transition: background-color 200ms ease-out, color 200ms ease-out;
+}
+
+a:not([class]):hover {
+  background-color: oklch(0.22 0 0 / 50%);
+  color: var(--foreground);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
 /* Hide scrollbar while keeping scroll functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -318,4 +330,31 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Luminance-based text color adjustment using mix-blend-mode */
+/* These classes provide real-time text color adjustment based on background */
+.mix-blend-mode-lighten {
+  mix-blend-mode: lighten;
+  color: white;
+}
+
+.mix-blend-mode-darken {
+  mix-blend-mode: darken;
+  color: #111827;
+}
+
+/* Fallback: High contrast text colors based on luminance analysis */
+.text-luminance-aware {
+  transition: color 150ms ease-out;
+}
+
+/* Light background - use dark text */
+.bg-light .text-luminance-aware {
+  color: #111827;
+}
+
+/* Dark background - use light text */
+.bg-dark .text-luminance-aware {
+  color: white;
 }
