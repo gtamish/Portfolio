@@ -55,24 +55,35 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
       const response = await fetch("/api/upload", { method: "GET" })
       const data = await response.json()
 
-      const groupedByProject: { [key: string]: MediaItem[] } = {}
-      data.forEach((item: MediaItem) => {
-        const projectName = item.title || "Untitled"
-        if (!groupedByProject[projectName]) {
-          groupedByProject[projectName] = []
-        }
-        groupedByProject[projectName].push(item)
-      })
+      let projectsArray: Project[] = []
 
-      const projectsArray: Project[] = Object.entries(groupedByProject).map(([title, images]) => ({
-        id: images[0].id,
-        title,
-        description: images[0].description,
-        images: images.reverse(),
-        createdAt: images[0].uploadedAt,
-        tag: (images[0].tag || "Visuals") as "Visuals" | "Case Studies",
-        featured: images[0].featured || false,
-      }))
+      // Handle both structures: new project-based and old flat image array
+      if (Array.isArray(data) && data.length > 0) {
+        if ('images' in data[0]) {
+          // New project-based structure
+          projectsArray = data as Project[]
+        } else {
+          // Old flat image array structure - group by title
+          const groupedByProject: { [key: string]: MediaItem[] } = {}
+          data.forEach((item: MediaItem) => {
+            const projectName = item.title || "Untitled"
+            if (!groupedByProject[projectName]) {
+              groupedByProject[projectName] = []
+            }
+            groupedByProject[projectName].push(item)
+          })
+
+          projectsArray = Object.entries(groupedByProject).map(([title, images]) => ({
+            id: images[0].id,
+            title,
+            description: images[0].description,
+            images: images.reverse(),
+            createdAt: images[0].uploadedAt,
+            tag: (images[0].tag || "Visuals") as "Visuals" | "Case Studies",
+            featured: images[0].featured || false,
+          }))
+        }
+      }
 
       setProjects(projectsArray)
       console.log("[v0] Projects updated:", projectsArray.length)

@@ -38,48 +38,30 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
         const response = await fetch("/api/upload")
         if (!response.ok) throw new Error("Failed to fetch projects")
         
-        const metadata: MediaItem[] = await response.json()
+        const data = await response.json()
         
-        // Group images by project ID (using the id from params)
-        const projectImages = metadata.filter(img => {
-          const imageProject = metadata.filter(m => m.id === img.id)
-          return imageProject.length > 0
-        })
-
-        // Find the first image with matching project context
-        // For now, find the project where the first image matches the ID
-        const firstImageOfProject = metadata.find(img => {
-          const imageIndex = metadata.indexOf(img)
-          return imageIndex === parseInt(params.id)
-        })
-
-        if (!firstImageOfProject) {
-          setIsLoading(false)
-          return
+        // Handle both project-based structure and flat image array
+        let projects: Project[] = []
+        
+        if (Array.isArray(data)) {
+          if (data.length > 0 && 'images' in data[0]) {
+            // New project-based structure
+            projects = data as Project[]
+          } else {
+            // Old flat image array structure - shouldn't happen with current metadata.json
+            console.warn("[v0] Unexpected data structure")
+          }
         }
 
-        // Build project from metadata - we'll use a simple approach
-        // Group by finding all consecutive images that are case studies
-        const allProjects: Record<string, MediaItem[]> = {}
-        const caseStudies: MediaItem[] = metadata.filter(m => m.tag === "Case Studies")
+        // Get case studies only
+        const caseStudies = projects.filter(p => p.tag === "Case Studies")
         
-        // For simplicity, use array index as project ID
+        // Find the project by index
         const projectIndex = parseInt(params.id)
         if (projectIndex < caseStudies.length) {
-          const projectImage = caseStudies[projectIndex]
-          const projectTitle = projectImage.title
-          
-          // Collect all images that belong to this project (same featured status and nearby)
-          const projectImages = caseStudies.filter(img => img.title === projectTitle)
-          
-          setProject({
-            id: params.id,
-            title: projectTitle,
-            description: projectImage.description,
-            images: projectImages,
-            tag: "Case Studies",
-            featured: projectImage.featured,
-          })
+          setProject(caseStudies[projectIndex])
+        } else {
+          console.warn("[v0] Case study index out of bounds:", projectIndex)
         }
       } catch (error) {
         console.error("[v0] Error fetching case study:", error)
