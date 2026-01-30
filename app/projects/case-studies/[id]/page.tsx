@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowLeft, Loader2, Edit2 } from "lucide-react"
 import { useTheme } from "next-themes"
-import { CaseStudyEditModal } from "@/components/case-study-edit-modal"
+import { NotionPageBuilder } from "@/components/notion-page-builder"
 
 interface MediaItem {
   id: string
@@ -247,7 +247,7 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
       </section>
 
       {/* Edit Modal */}
-      <CaseStudyEditModal
+      <NotionPageBuilder
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         projectId={project.id}
