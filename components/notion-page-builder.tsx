@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { GripVertical, Plus, Trash2, Copy, Loader2, ChevronDown, Link as LinkIcon, Image as ImageIcon, Type, Grid, Figma, Lock, Edit2, X, AlertCircle, Check } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -41,8 +41,8 @@ export function NotionPageBuilder({ isOpen, onClose, projectId, projectTitle, on
   const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null)
   const dragOverIndex = useRef<number>(-1)
 
-  // Load existing content function
-  const loadExistingContent = async () => {
+  // Load existing content function - wrapped in useCallback to prevent recreation
+  const loadExistingContent = useCallback(async () => {
     try {
       const response = await fetch(`/api/case-study/${projectId}`)
       const data = await response.json()
@@ -53,7 +53,7 @@ export function NotionPageBuilder({ isOpen, onClose, projectId, projectTitle, on
     } catch (err) {
       console.log("[v0] No existing content found")
     }
-  }
+  }, [projectId])
 
   useEffect(() => {
     setMounted(true)
@@ -62,7 +62,7 @@ export function NotionPageBuilder({ isOpen, onClose, projectId, projectTitle, on
       setIsAuthenticated(true)
       loadExistingContent()
     }
-  }, [isInline])
+  }, [isInline, loadExistingContent])
 
   if (!mounted) return null
   
