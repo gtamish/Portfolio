@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
 
     await put(caseStudyKey, JSON.stringify(caseStudyData), {
       access: "public",
+      allowOverwrite: true,
     })
 
     console.log("[v0] Case study saved:", caseStudyKey)
