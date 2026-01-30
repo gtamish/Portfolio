@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { Lock, Unlock, Save, X, GripHorizontal, GripVertical, ChevronRight, Grid3x3 } from "lucide-react"
+import { Lock, Unlock, Save, X, GripHorizontal, GripVertical, ChevronRight, Grid3x3, Star } from "lucide-react"
+import { getAverageImageColor, getContrastTextColor } from "@/lib/contrast"
 
 interface ProjectLayout {
   [projectId: string]: { colSpan: number; rowSpan: number }
@@ -46,6 +47,7 @@ export function InteractiveGalleryGrid({
   const [layout, setLayout] = useState<ProjectLayout>(currentLayout)
   const [isSaving, setIsSaving] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [textColors, setTextColors] = useState<{ [key: string]: "light" | "dark" }>({})
   const editMode = isEditMode ?? false
   const [dragState, setDragState] = useState<DragState>({
     projectId: null,
@@ -212,6 +214,26 @@ export function InteractiveGalleryGrid({
     return `col-span-${span.colSpan} row-span-${span.rowSpan}`
   }
 
+  // Calculate text colors for all projects on mount and when projects change
+  useEffect(() => {
+    const calculateColors = async () => {
+      const colors: { [key: string]: "light" | "dark" } = {}
+      for (const project of projects) {
+        const heroImage = project.images[0]
+        if (heroImage) {
+          try {
+            const avgColor = await getAverageImageColor(heroImage.url || `/media/${heroImage.filename}`)
+            colors[project.id] = getContrastTextColor(avgColor)
+          } catch {
+            colors[project.id] = "light" // Fallback to light text
+          }
+        }
+      }
+      setTextColors(colors)
+    }
+    calculateColors()
+  }, [projects])
+
   return (
     <div className="w-full">
       {/* Grid */}
@@ -244,14 +266,34 @@ export function InteractiveGalleryGrid({
                 />
               </div>
 
-              {/* Project Info Overlay - Bottom, visible on all projects */}
+              {/* Featured Badge */}
+              {project.featured && !editMode && (
+                <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/90 backdrop-blur-md">
+                  <Star className="size-3.5 fill-background text-background" />
+                  <span className="text-xs font-semibold text-background">Featured</span>
+                </div>
+              )}
+
+              {/* Project Info Overlay - Bottom, visible always for Case Studies, on hover for Visuals */}
               {!editMode && (
-                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-black/80 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto">
-                  <h4 className="text-white font-semibold text-sm sm:text-base line-clamp-2 mb-1">
+                <div
+                  className={`absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-black/80 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto transition-opacity ${
+                    isCaseStudy ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  }`}
+                >
+                  <h4
+                    className={`font-semibold text-sm sm:text-base line-clamp-2 mb-1 ${
+                      textColors[project.id] === "light" ? "text-white" : "text-gray-900"
+                    }`}
+                  >
                     {project.title}
                   </h4>
                   {project.description && (
-                    <p className="text-white/80 text-xs sm:text-sm line-clamp-2 mb-2">
+                    <p
+                      className={`text-xs sm:text-sm line-clamp-2 mb-2 ${
+                        textColors[project.id] === "light" ? "text-white/80" : "text-gray-800"
+                      }`}
+                    >
                       {project.description}
                     </p>
                   )}
