@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { ArrowLeft, Loader2, Edit2, X, Save, Plus, Trash2, Copy, Move, GripVertical, Image as ImageIcon } from 'lucide-react'
 import { createSlug } from '@/lib/slug'
 import { LaptopFrame } from '@/components/laptop-frame'
-import { StickyHeader } from '@/components/sticky-header'
 import { getContrastTextColor, getAverageImageColor } from '@/lib/contrast'
 
 interface MediaItem {
@@ -50,6 +49,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
   const [blocks, setBlocks] = useState<ContentBlock[]>([])
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [textColorMode, setTextColorMode] = useState<'light' | 'dark'>('light')
+  const [scrollY, setScrollY] = useState(0)
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -116,6 +116,14 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
 
     fetchProject()
   }, [params.slug])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const handleAddBlock = (type: ContentBlock['type']) => {
     const newBlock: ContentBlock = {
@@ -379,6 +387,13 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
             Back to Projects
           </Link>
 
+          {/* Case Study Title - Shows when scrolled past hero section */}
+          {scrollY > 200 && project && (
+            <h1 className="absolute left-1/2 transform -translate-x-1/2 text-base sm:text-lg font-semibold text-foreground mix-blend-mode-lighten whitespace-nowrap">
+              {project.title}
+            </h1>
+          )}
+
           <button
             onClick={async () => {
               const passkey = prompt('Enter passkey to edit:')
@@ -410,9 +425,6 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
           </button>
         </div>
       </nav>
-
-      {/* Sticky Header with Case Study Title */}
-      {project && <StickyHeader title={project.title} />}
 
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
