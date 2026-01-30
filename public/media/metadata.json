@@ -1,19 +1,12 @@
 [
   {
-    "id": "align360-case-study",
+    "id": "align360-case-study-1",
+    "filename": "wipro-case-study.jpg",
     "title": "Align360",
     "description": "Align360 is a tool that helps managers capture and structure monthly one-on-one conversations, enabling better alignment, feedback, and employee growth.",
-    "images": [
-      {
-        "id": "align360-hero",
-        "filename": "wipro-case-study.jpg",
-        "title": "Align360 - Case Study",
-        "description": "Complete case study covering the design and implementation of Align360, a tool for capturing and structuring one-on-one conversations to enable better alignment, feedback, and employee growth.",
-        "uploadedAt": "2026-01-30",
-        "url": "/media/wipro-case-study.jpg"
-      }
-    ],
+    "uploadedAt": "2026-01-30",
+    "url": "/media/wipro-case-study.jpg",
     "tag": "Case Studies",
-    "featured": true,
-    "uploadedAt": "2026-01-30"
-  }]
+    "featured": true
+  }
+]

@@ -40,26 +40,30 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
         
         const data = await response.json()
         
-        // Handle both project-based structure and flat image array
-        let projects: Project[] = []
-        
-        if (Array.isArray(data)) {
-          if (data.length > 0 && 'images' in data[0]) {
-            // New project-based structure
-            projects = data as Project[]
-          } else {
-            // Old flat image array structure - shouldn't happen with current metadata.json
-            console.warn("[v0] Unexpected data structure")
-          }
+        if (!Array.isArray(data)) {
+          console.warn("[v0] Invalid data structure")
+          return
         }
 
-        // Get case studies only
-        const caseStudies = projects.filter(p => p.tag === "Case Studies")
+        // Filter to get only case studies (flat MediaItem array)
+        const caseStudyItems = data.filter((item: MediaItem) => item.tag === "Case Studies")
         
-        // Find the project by index
+        // Get the case study by index
         const projectIndex = parseInt(params.id)
-        if (projectIndex < caseStudies.length) {
-          setProject(caseStudies[projectIndex])
+        if (projectIndex < caseStudyItems.length) {
+          const caseStudyItem = caseStudyItems[projectIndex]
+          
+          // Group all items with the same title (same project)
+          const projectItems = data.filter((item: MediaItem) => item.title === caseStudyItem.title)
+          
+          setProject({
+            id: caseStudyItem.id,
+            title: caseStudyItem.title,
+            description: caseStudyItem.description,
+            images: projectItems,
+            tag: "Case Studies",
+            featured: caseStudyItem.featured,
+          })
         } else {
           console.warn("[v0] Case study index out of bounds:", projectIndex)
         }
