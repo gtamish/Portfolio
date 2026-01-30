@@ -101,9 +101,23 @@ export function ProjectGallery({ filter, onFullscreenChange, onLayoutEditorOpen 
       fetchProjects()
       // Load custom layout
       fetch("/api/gallery-layout")
-        .then(res => res.json())
-        .then(layout => setCustomLayout(layout))
-        .catch(err => console.error("[v0] Failed to load layout:", err))
+        .then(res => {
+          if (!res.ok) {
+            console.warn("[v0] Layout API returned status:", res.status)
+            return {}
+          }
+          return res.json()
+        })
+        .then(layout => {
+          if (layout && typeof layout === "object") {
+            console.log("[v0] Layout loaded:", Object.keys(layout).length, "items")
+            setCustomLayout(layout)
+          }
+        })
+        .catch(err => {
+          console.warn("[v0] Failed to load layout:", err.message)
+          setCustomLayout({})
+        })
     }
   }, [mounted, fetchProjects])
 
