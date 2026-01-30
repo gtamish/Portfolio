@@ -77,8 +77,11 @@ export async function PUT(req: NextRequest) {
     const body = await req.json()
     const { passkey, layout } = body
 
+    console.log("[v0] Save layout request - passkey:", passkey, "layout keys:", Object.keys(layout || {}))
+
     // Verify passkey
     if (passkey !== PASSKEY) {
+      console.error("[v0] Invalid passkey provided")
       return NextResponse.json(
         { error: "Invalid passkey" },
         { status: 401 }
@@ -86,6 +89,7 @@ export async function PUT(req: NextRequest) {
     }
 
     if (!layout || typeof layout !== "object") {
+      console.error("[v0] Invalid layout format:", layout)
       return NextResponse.json(
         { error: "Invalid layout format" },
         { status: 400 }
@@ -93,11 +97,14 @@ export async function PUT(req: NextRequest) {
     }
 
     // Get existing metadata
+    console.log("[v0] Getting existing metadata...")
     const metadata = await getMetadata()
+    console.log("[v0] Current metadata projects:", metadata.length)
 
     // Update layout for each project
     const updatedMetadata = metadata.map((project) => {
       if (layout[project.id]) {
+        console.log("[v0] Updating layout for project:", project.id, layout[project.id])
         return {
           ...project,
           layout: layout[project.id],
@@ -107,12 +114,13 @@ export async function PUT(req: NextRequest) {
     })
 
     // Save updated metadata
+    console.log("[v0] Saving updated metadata with", updatedMetadata.length, "projects")
     await saveMetadata(updatedMetadata)
 
     console.log("[v0] Gallery layouts saved successfully")
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[v0] Failed to save layouts:", error)
+    console.error("[v0] Failed to save layouts - error:", error)
     return NextResponse.json(
       { error: "Failed to save layouts", details: String(error) },
       { status: 500 }

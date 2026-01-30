@@ -172,21 +172,29 @@ export function InteractiveGalleryGrid({
         return
       }
 
+      console.log("[v0] Saving layout with", Object.keys(layout).length, "projects")
+
       const response = await fetch("/api/gallery-layout", {
         method: "PUT",
         body: JSON.stringify({ passkey, layout }),
       })
 
+      console.log("[v0] Save response status:", response.status)
+
       if (response.ok) {
+        const data = await response.json()
+        console.log("[v0] Save response data:", data)
         alert("Layout saved successfully!")
         setIsEditMode(false)
         setIsAuthenticated(false)
       } else {
-        alert("Failed to save layout")
+        const error = await response.json()
+        console.error("[v0] Save error response:", error)
+        alert(`Failed to save layout: ${error.error || "Unknown error"}`)
       }
     } catch (error) {
       console.error("[v0] Failed to save layout:", error)
-      alert("Error saving layout")
+      alert("Error saving layout: " + String(error))
     } finally {
       setIsSaving(false)
     }
