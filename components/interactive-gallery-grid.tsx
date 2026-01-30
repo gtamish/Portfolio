@@ -318,24 +318,37 @@ export function InteractiveGalleryGrid({
                 </div>
               )}
 
-              {/* Featured Badge */}
+              {/* Featured Badge - Animated Gradient */}
               {project.featured && !editMode && (
-                <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/90 backdrop-blur-md">
-                  <Star className="size-3.5 fill-background text-background" />
-                  <span className="text-xs font-semibold text-background">Featured</span>
+                <div className="absolute top-3 left-3 z-10">
+                  <style>{`
+                    @keyframes gradientShift {
+                      0%, 100% { background-position: 0% 50%; }
+                      50% { background-position: 100% 50%; }
+                    }
+                    .featured-gradient {
+                      background: linear-gradient(-45deg, #ff6b6b, #ff8e72, #feca57, #48dbfb, #ff6b6b);
+                      background-size: 300% 300%;
+                      animation: gradientShift 6s ease infinite;
+                    }
+                  `}</style>
+                  <div className="featured-gradient flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg">
+                    <Star className="size-3.5 fill-white text-white" />
+                    <span className="text-xs font-semibold text-white">Featured</span>
+                  </div>
                 </div>
               )}
 
               {/* Project Info Overlay - Bottom, visible always for Case Studies, on hover for Visuals */}
               {!editMode && (
                 <div
-                  className={`absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-black/80 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto transition-opacity ${
+                  className={`absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-white/90 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto transition-opacity ${
                     isCaseStudy ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                   }`}
                 >
                   <h4
                     className={`font-semibold text-sm sm:text-base line-clamp-2 mb-1 ${
-                      textColors[project.id] === "light" ? "text-white" : "text-gray-900"
+                      textColors[project.id] === "light" ? "text-gray-900" : "text-white"
                     }`}
                   >
                     {project.title}
@@ -343,7 +356,7 @@ export function InteractiveGalleryGrid({
                   {project.description && (
                     <p
                       className={`text-xs sm:text-sm line-clamp-2 mb-2 ${
-                        textColors[project.id] === "light" ? "text-white/80" : "text-gray-800"
+                        textColors[project.id] === "light" ? "text-gray-800" : "text-white/90"
                       }`}
                     >
                       {project.description}
