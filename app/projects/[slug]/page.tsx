@@ -55,16 +55,25 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
     const fetchProject = async () => {
       try {
         setIsLoading(true)
+        console.log('[v0] Case study page - fetching with slug:', params.slug)
+        
         const response = await fetch('/api/upload')
         if (!response.ok) throw new Error('Failed to fetch projects')
 
         const data = await response.json()
+        console.log('[v0] Case study page - received data:', data)
 
         let foundProject: Project | null = null
 
         if (data.length > 0 && 'images' in data[0]) {
-          foundProject = data.find((p: Project) => createSlug(p.title) === params.slug) || null
-        } else {
+          console.log('[v0] Case study page - data already has images (is Project[]), finding project...')
+          foundProject = data.find((p: Project) => {
+            const slug = createSlug(p.title)
+            console.log('[v0] Case study page - checking project:', p.title, '-> slug:', slug)
+            return slug === params.slug
+          }) || null
+        } else if (data.length > 0 && 'title' in data[0]) {
+          console.log('[v0] Case study page - data is MediaItem[], grouping by project...')
           const groupedByProject: { [key: string]: MediaItem[] } = {}
           data.forEach((item: MediaItem) => {
             const projectName = item.title || 'Untitled'
@@ -74,8 +83,12 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
             groupedByProject[projectName].push(item)
           })
 
+          console.log('[v0] Case study page - grouped projects:', Object.keys(groupedByProject))
+
           for (const [title, images] of Object.entries(groupedByProject)) {
-            if (createSlug(title) === params.slug) {
+            const titleSlug = createSlug(title)
+            console.log('[v0] Case study page - comparing slug:', titleSlug, 'with params.slug:', params.slug)
+            if (titleSlug === params.slug) {
               foundProject = {
                 id: images[0].id,
                 title,
@@ -84,12 +97,16 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                 tag: images[0].tag,
                 featured: images[0].featured,
               }
+              console.log('[v0] Case study page - project found:', title)
               break
             }
           }
+        } else {
+          console.warn('[v0] Case study page - unexpected data structure:', data)
         }
 
         if (foundProject) {
+          console.log('[v0] Case study page - project found, setting state')
           setProject(foundProject)
           setEditTitle(foundProject.title)
           setEditDescription(foundProject.description)
@@ -106,6 +123,8 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                 setTextColorMode('light') // Fallback
               })
           }
+        } else {
+          console.log('[v0] Case study page - NO PROJECT FOUND for slug:', params.slug)
         }
       } catch (error) {
         console.error('[v0] Failed to fetch project:', error)

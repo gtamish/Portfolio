@@ -149,28 +149,36 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const metadata = await getMetadata()
+    console.log("[v0] API GET - metadata from blob:", metadata.length, "items")
     
     // Ensure Align360 is included in the metadata
     const hasAlign360 = metadata.some((item: any) => item.title === "Align360")
+    console.log("[v0] API GET - has Align360 from blob:", hasAlign360)
     
     if (!hasAlign360) {
       try {
         // Read local Align360 metadata from the file system
-        const localMetadata = await import("fs").then(fs => 
-          fs.promises.readFile("public/media/metadata.json", "utf-8")
-        ).then(data => JSON.parse(data)).catch(() => [])
+        const fs = await import("fs")
+        const localMetadata = await fs.promises.readFile("public/media/metadata.json", "utf-8")
+          .then(data => JSON.parse(data))
+          .catch(err => {
+            console.warn("[v0] API GET - failed to read local metadata:", err)
+            return []
+          })
+        
+        console.log("[v0] API GET - loaded local metadata with", localMetadata.length, "items")
         
         // Merge local metadata with blob metadata
         const mergedMetadata = [...metadata, ...localMetadata]
+        console.log("[v0] API GET - merged metadata total:", mergedMetadata.length, "items")
         
         // Save merged metadata to blob for persistence
         if (localMetadata.length > 0) {
           await saveMetadata(mergedMetadata).catch(err => {
-            console.warn("[v0] Failed to auto-save Align360 to blob:", err)
+            console.warn("[v0] API GET - failed to auto-save Align360 to blob:", err)
           })
         }
         
-        console.log("[v0] Returning metadata with", mergedMetadata.length, "items (including Align360)")
         return NextResponse.json(mergedMetadata, {
           headers: {
             "Cache-Control": "no-store, must-revalidate",
@@ -179,7 +187,7 @@ export async function GET() {
           },
         })
       } catch (localError) {
-        console.warn("[v0] Could not load local metadata:", localError)
+        console.warn("[v0] API GET - could not load local metadata:", localError)
       }
     }
     
@@ -189,7 +197,7 @@ export async function GET() {
       featured: item.title === "Align360" ? true : false
     }))
     
-    console.log("[v0] Returning metadata with", processedMetadata.length, "items")
+    console.log("[v0] API GET - returning metadata with", processedMetadata.length, "items")
     return NextResponse.json(processedMetadata, {
       headers: {
         "Cache-Control": "no-store, must-revalidate",
@@ -198,7 +206,7 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error("[v0] Get media error:", error)
+    console.error("[v0] GET media error:", error)
     return NextResponse.json(
       { error: "Failed to get media", details: String(error) },
       { status: 500 }
