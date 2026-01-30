@@ -244,41 +244,23 @@ export function InteractiveGalleryGrid({
                 />
               </div>
 
-              {/* Project Info Overlay - Sticky header when expanded (Case Studies only) */}
-              {!editMode && isCaseStudy && ((layout[project.id]?.colSpan || 1) > 1 || (layout[project.id]?.rowSpan || 1) > 1) ? (
-                <div className="absolute top-0 left-0 right-0 p-4 sm:p-6 bg-black/80 backdrop-blur-md">
-                  <h4 className="text-white font-semibold text-base sm:text-lg line-clamp-2">
+              {/* Project Info Overlay - Bottom, visible on all projects */}
+              {!editMode && (
+                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-black/80 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto">
+                  <h4 className="text-white font-semibold text-sm sm:text-base line-clamp-2 mb-1">
                     {project.title}
                   </h4>
                   {project.description && (
-                    <p className="text-white/80 text-sm mt-1 line-clamp-2">
+                    <p className="text-white/80 text-xs sm:text-sm line-clamp-2 mb-2">
                       {project.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 text-accent font-semibold text-sm mt-3 group-hover:translate-x-1 transition-transform">
-                    <span>Read case study</span>
-                    <ChevronRight className="size-4" />
-                  </div>
-                </div>
-              ) : (
-                /* Project Overlay - Show for standard 1x1 projects when not in edit mode */
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-start justify-end pointer-events-none p-4 sm:p-6">
-                  <div className="text-left">
-                    <h4 className="text-white font-semibold text-sm sm:text-base mb-2">
-                      {project.title}
-                    </h4>
-                    {project.description && (
-                      <p className="text-white/80 text-xs sm:text-sm line-clamp-2 mb-3">
-                        {project.description}
-                      </p>
-                    )}
-                    {isCaseStudy && (
-                      <div className="flex items-center gap-2 text-accent font-semibold text-xs sm:text-sm group-hover:translate-x-1 transition-transform">
-                        <span>Read case study</span>
-                        <ChevronRight className="size-4" />
-                      </div>
-                    )}
-                  </div>
+                  {isCaseStudy && (
+                    <div className="flex items-center gap-2 text-accent font-semibold text-xs sm:text-sm group-hover:translate-x-1 transition-transform">
+                      <span>Read case study</span>
+                      <ChevronRight className="size-4" />
+                    </div>
+                  )}
                 </div>
               )}
 
