@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { Lock, Unlock, Save, X, GripHorizontal } from "lucide-react"
+import { Lock, Unlock, Save, X, GripHorizontal, GripVertical } from "lucide-react"
 
 interface ProjectLayout {
   [projectId: string]: { colSpan: number; rowSpan: number }
@@ -17,6 +17,15 @@ interface InteractiveGalleryGridProps {
   currentLayout: ProjectLayout
 }
 
+interface DragState {
+  projectId: string | null
+  startX: number
+  startY: number
+  originalColSpan: number
+  originalRowSpan: number
+  handle: "right" | "bottom" | "corner" | null
+}
+
 export function InteractiveGalleryGrid({
   projects,
   onLayoutChange,
@@ -27,8 +36,14 @@ export function InteractiveGalleryGrid({
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
-  const [draggedProject, setDraggedProject] = useState<string | null>(null)
-  const [dragHandle, setDragHandle] = useState<"horizontal" | "vertical" | null>(null)
+  const [dragState, setDragState] = useState<DragState>({
+    projectId: null,
+    startX: 0,
+    startY: 0,
+    originalColSpan: 1,
+    originalRowSpan: 1,
+    handle: null,
+  })
 
   const visualProjects = projects.filter(p => p.images && p.images.length > 0)
 
@@ -67,53 +82,73 @@ export function InteractiveGalleryGrid({
 
   const handleResizeStart = (
     projectId: string,
-    handle: "horizontal" | "vertical"
+    handle: "right" | "bottom" | "corner",
+    e: React.MouseEvent
   ) => {
     if (!isEditMode) return
-    setDraggedProject(projectId)
-    setDragHandle(handle)
+    e.preventDefault()
+    e.stopPropagation()
+
+    const current = layout[projectId] || { colSpan: 1, rowSpan: 1 }
+    setDragState({
+      projectId,
+      startX: e.clientX,
+      startY: e.clientY,
+      originalColSpan: current.colSpan,
+      originalRowSpan: current.rowSpan,
+      handle,
+    })
   }
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!draggedProject || !dragHandle) return
+    if (!dragState.projectId || !dragState.handle) return
 
-    const currentSpan = layout[draggedProject]
-    if (!currentSpan) return
+    const deltaX = e.clientX - dragState.startX
+    const deltaY = e.clientY - dragState.startY
 
-    if (dragHandle === "horizontal") {
-      // Horizontal resize - change colSpan
-      const change = Math.round((e.movementX || 0) / 100)
-      if (change !== 0) {
-        updateProjectSpan(
-          draggedProject,
-          currentSpan.colSpan + change,
-          currentSpan.rowSpan
-        )
-        setDragHandle(null)
-        setDraggedProject(null)
-      }
-    } else if (dragHandle === "vertical") {
-      // Vertical resize - change rowSpan
-      const change = Math.round((e.movementY || 0) / 100)
-      if (change !== 0) {
-        updateProjectSpan(
-          draggedProject,
-          currentSpan.colSpan,
-          currentSpan.rowSpan + change
-        )
-        setDragHandle(null)
-        setDraggedProject(null)
-      }
+    let newColSpan = dragState.originalColSpan
+    let newRowSpan = dragState.originalRowSpan
+
+    // Grid cell is approximately 300px + gap (24px) = ~325px per column
+    // and auto-rows-[300px] + gap = ~325px per row
+    const cellSize = 325
+
+    if (dragState.handle === "right" || dragState.handle === "corner") {
+      const change = Math.round(deltaX / cellSize)
+      newColSpan = Math.max(1, Math.min(4, dragState.originalColSpan + change))
     }
-  }, [draggedProject, dragHandle, layout])
+
+    if (dragState.handle === "bottom" || dragState.handle === "corner") {
+      const change = Math.round(deltaY / cellSize)
+      newRowSpan = Math.max(1, Math.min(2, dragState.originalRowSpan + change))
+    }
+
+    if (
+      newColSpan !== dragState.originalColSpan ||
+      newRowSpan !== dragState.originalRowSpan
+    ) {
+      const newLayout = {
+        ...layout,
+        [dragState.projectId]: { colSpan: newColSpan, rowSpan: newRowSpan },
+      }
+      setLayout(newLayout)
+      onLayoutChange(newLayout)
+    }
+  }, [dragState, layout, onLayoutChange])
 
   const handleMouseUp = () => {
-    setDraggedProject(null)
-    setDragHandle(null)
+    setDragState({
+      projectId: null,
+      startX: 0,
+      startY: 0,
+      originalColSpan: 1,
+      originalRowSpan: 1,
+      handle: null,
+    })
   }
 
   useEffect(() => {
-    if (draggedProject) {
+    if (dragState.projectId) {
       window.addEventListener("mousemove", handleMouseMove)
       window.addEventListener("mouseup", handleMouseUp)
       return () => {
@@ -121,7 +156,7 @@ export function InteractiveGalleryGrid({
         window.removeEventListener("mouseup", handleMouseUp)
       }
     }
-  }, [draggedProject, dragHandle, handleMouseMove])
+  }, [dragState.projectId, dragState, handleMouseMove])
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -199,63 +234,83 @@ export function InteractiveGalleryGrid({
 
           const span = getGridSpan(project.id)
           const isSelected = selectedProjectId === project.id
+          const isDragging = dragState.projectId === project.id
 
           return (
             <div
               key={project.id}
               onMouseEnter={() => isEditMode && setSelectedProjectId(project.id)}
               onMouseLeave={() => setSelectedProjectId(null)}
-              className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 ${
+              className={`group relative cursor-pointer rounded-2xl overflow-visible transition-all duration-300 ${
                 isEditMode ? "ring-2 ring-accent/30" : ""
-              } ${isSelected ? "ring-2 ring-accent" : ""} ${span}`}
+              } ${isSelected ? "ring-2 ring-accent" : ""} ${isDragging ? "ring-2 ring-accent" : ""} ${span}`}
             >
-              {/* Image */}
-              <img
-                src={heroImage.url || `/media/${heroImage.filename}`}
-                alt={project.title}
-                className="w-full h-full object-cover"
-              />
+              {/* Image Container */}
+              <div className="w-full h-full rounded-2xl overflow-hidden">
+                <img
+                  src={heroImage.url || `/media/${heroImage.filename}`}
+                  alt={project.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
 
               {/* Edit Mode Overlay */}
               {isEditMode && (
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <h4 className="text-white font-semibold text-sm mb-2">
-                        {project.title}
-                      </h4>
-                      <p className="text-white/70 text-xs">
-                        {layout[project.id]?.colSpan || 1}×{layout[project.id]?.rowSpan || 1}
-                      </p>
-                    </div>
-
-                    {/* Resize Controls */}
-                    <div className="flex gap-2">
-                      <button
-                        onMouseDown={() => handleResizeStart(project.id, "horizontal")}
-                        className="px-3 py-1 bg-accent/20 hover:bg-accent/40 text-white text-xs rounded transition-colors"
-                      >
-                        W: {layout[project.id]?.colSpan || 1}
-                      </button>
-                      <button
-                        onMouseDown={() => handleResizeStart(project.id, "vertical")}
-                        className="px-3 py-1 bg-accent/20 hover:bg-accent/40 text-white text-xs rounded transition-colors"
-                      >
-                        H: {layout[project.id]?.rowSpan || 1}
-                      </button>
-                    </div>
-
-                    <p className="text-white/50 text-xs text-center">
-                      Drag buttons to resize
+                <div className="absolute inset-0 rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <div className="space-y-4 text-center">
+                    <h4 className="text-white font-semibold text-sm">
+                      {project.title}
+                    </h4>
+                    <p className="text-white/70 text-xs">
+                      {layout[project.id]?.colSpan || 1}×{layout[project.id]?.rowSpan || 1}
+                    </p>
+                    <p className="text-white/50 text-xs">
+                      Drag borders to resize
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Corner resize indicator */}
+              {/* Right border drag handle */}
               {isEditMode && (
-                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <GripHorizontal className="size-4 text-white" />
+                <div
+                  onMouseDown={(e) => handleResizeStart(project.id, "right", e)}
+                  className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:w-2 hover:bg-accent/60 transition-all opacity-0 group-hover:opacity-100 ${
+                    dragState.projectId === project.id && dragState.handle === "right"
+                      ? "w-2 bg-accent"
+                      : "bg-accent/30"
+                  }`}
+                  title="Drag to resize width"
+                />
+              )}
+
+              {/* Bottom border drag handle */}
+              {isEditMode && (
+                <div
+                  onMouseDown={(e) => handleResizeStart(project.id, "bottom", e)}
+                  className={`absolute bottom-0 left-0 h-1 w-full cursor-row-resize hover:h-2 hover:bg-accent/60 transition-all opacity-0 group-hover:opacity-100 ${
+                    dragState.projectId === project.id && dragState.handle === "bottom"
+                      ? "h-2 bg-accent"
+                      : "bg-accent/30"
+                  }`}
+                  title="Drag to resize height"
+                />
+              )}
+
+              {/* Corner drag handle */}
+              {isEditMode && (
+                <div
+                  onMouseDown={(e) => handleResizeStart(project.id, "corner", e)}
+                  className={`absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-nwse-resize ${
+                    dragState.projectId === project.id && dragState.handle === "corner"
+                      ? "opacity-100"
+                      : ""
+                  }`}
+                >
+                  <div className="flex gap-1">
+                    <GripVertical className="size-4 text-accent" />
+                    <GripHorizontal className="size-4 text-accent" />
+                  </div>
                 </div>
               )}
             </div>
@@ -267,7 +322,7 @@ export function InteractiveGalleryGrid({
       {isEditMode && (
         <div className="mt-6 p-4 rounded-lg bg-accent/10 border border-accent/20">
           <p className="text-sm text-foreground/80">
-            <strong>Edit Mode:</strong> Hover over boxes and drag the Width/Height buttons to resize. Changes update in real-time. Click Save Layout to persist changes.
+            <strong>Edit Mode:</strong> Hover over boxes to reveal resize handles. Drag the borders (right edge for width, bottom edge for height, corner for both) to resize. Changes update in real-time. Click Save Layout to persist.
           </p>
         </div>
       )}
