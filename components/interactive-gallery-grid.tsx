@@ -59,7 +59,15 @@ export function InteractiveGalleryGrid({
     handle: null,
   })
 
-  const visualProjects = projects.filter(p => p.images && p.images.length > 0)
+  const visualProjects = projects
+    .filter(p => p.images && p.images.length > 0)
+    .sort((a, b) => {
+      // Featured projects come first
+      if (a.featured && !b.featured) return -1
+      if (!a.featured && b.featured) return 1
+      // Otherwise maintain original order
+      return 0
+    })
 
   const handleAuthenticate = async () => {
     const passkey = prompt("Enter passkey to edit layout:")
