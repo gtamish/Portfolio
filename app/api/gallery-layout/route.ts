@@ -1,31 +1,73 @@
 import { NextRequest, NextResponse } from "next/server"
-import { put, get } from "@vercel/blob"
+import { put, list } from "@vercel/blob"
 
 const PASSKEY = process.env.EDIT_PASSKEY || "default-passkey"
-const LAYOUT_FILE = "gallery-layout.json"
+const METADATA_KEY = "projects-metadata.json"
+
+interface ProjectMetadata {
+  id: string
+  title: string
+  description: string
+  tag?: string
+  featured?: boolean
+  layout?: { colSpan: number; rowSpan: number }
+  [key: string]: any
+}
+
+async function getMetadata(): Promise<ProjectMetadata[]> {
+  try {
+    const { blobs } = await list()
+    const metadataBlob = blobs.find((blob) => blob.pathname === METADATA_KEY)
+
+    if (metadataBlob) {
+      const response = await fetch(metadataBlob.url)
+      if (!response.ok) {
+        console.error("[v0] Failed to fetch metadata blob:", response.status)
+        return []
+      }
+      const text = await response.text()
+      if (!text) {
+        console.warn("[v0] Metadata blob is empty")
+        return []
+      }
+      const data = JSON.parse(text)
+      return Array.isArray(data) ? data : []
+    }
+  } catch (error) {
+    console.error("[v0] Error getting metadata:", error)
+  }
+  return []
+}
+
+async function saveMetadata(metadata: ProjectMetadata[]) {
+  try {
+    const blob = await put(METADATA_KEY, JSON.stringify(metadata, null, 2), {
+      access: "public",
+      contentType: "application/json",
+      allowOverwrite: true,
+    })
+    console.log("[v0] Metadata with layouts saved")
+  } catch (error) {
+    console.error("[v0] Error saving metadata:", error)
+    throw error
+  }
+}
 
 export async function GET() {
   try {
-    let blob
-    try {
-      blob = await get(LAYOUT_FILE)
-    } catch (err) {
-      // File doesn't exist yet - return empty layout
-      console.log("[v0] No layout file found, returning empty layout")
-      return NextResponse.json({})
-    }
-
-    if (!blob) {
-      return NextResponse.json({})
-    }
-
-    const text = await blob.text()
-    const layout = JSON.parse(text)
-    console.log("[v0] Layout loaded successfully")
-    return NextResponse.json(layout)
+    const metadata = await getMetadata()
+    const layouts: { [key: string]: { colSpan: number; rowSpan: number } } = {}
+    
+    metadata.forEach((project) => {
+      if (project.layout) {
+        layouts[project.id] = project.layout
+      }
+    })
+    
+    console.log("[v0] Gallery layouts retrieved:", Object.keys(layouts).length)
+    return NextResponse.json(layouts)
   } catch (error) {
-    console.error("[v0] Failed to fetch layout:", error)
-    // Return empty object instead of error to prevent JSON parsing issues
+    console.error("[v0] Failed to fetch layouts:", error)
     return NextResponse.json({})
   }
 }
@@ -50,17 +92,29 @@ export async function PUT(req: NextRequest) {
       )
     }
 
-    // Save layout to blob
-    await put(LAYOUT_FILE, JSON.stringify(layout, null, 2), {
-      access: "private",
+    // Get existing metadata
+    const metadata = await getMetadata()
+
+    // Update layout for each project
+    const updatedMetadata = metadata.map((project) => {
+      if (layout[project.id]) {
+        return {
+          ...project,
+          layout: layout[project.id],
+        }
+      }
+      return project
     })
 
-    console.log("[v0] Gallery layout saved successfully")
+    // Save updated metadata
+    await saveMetadata(updatedMetadata)
+
+    console.log("[v0] Gallery layouts saved successfully")
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[v0] Failed to save layout:", error)
+    console.error("[v0] Failed to save layouts:", error)
     return NextResponse.json(
-      { error: "Failed to save layout", details: String(error) },
+      { error: "Failed to save layouts", details: String(error) },
       { status: 500 }
     )
   }
