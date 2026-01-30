@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { Lock, Unlock, Save, X, GripHorizontal, GripVertical, ChevronRight } from "lucide-react"
+import { Lock, Unlock, Save, X, GripHorizontal, GripVertical, ChevronRight, Grid3x3 } from "lucide-react"
 
 interface ProjectLayout {
   [projectId: string]: { colSpan: number; rowSpan: number }
@@ -208,35 +208,30 @@ export function InteractiveGalleryGrid({
 
   return (
     <div className="w-full">
-      {/* Controls */}
-      <div className="flex items-center justify-between mb-6 gap-4">
-        <button
-          onClick={isEditMode ? () => setIsEditMode(false) : handleAuthenticate}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent transition-colors font-medium"
-        >
-          {isEditMode ? (
-            <>
-              <Lock className="size-4" />
-              <span>Lock Grid</span>
-            </>
-          ) : (
-            <>
-              <Unlock className="size-4" />
-              <span>Edit Layout</span>
-            </>
-          )}
-        </button>
-
+      {/* Floating Controls - Bottom Right */}
+      <div className="fixed bottom-6 right-6 z-30 flex items-center gap-3">
         {isEditMode && (
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent/90 text-background transition-colors font-medium disabled:opacity-50"
+            className="inline-flex items-center justify-center p-3 rounded-full bg-accent hover:bg-accent/90 text-background transition-colors disabled:opacity-50 shadow-lg"
+            title={isSaving ? "Saving..." : "Save layout"}
           >
-            <Save className="size-4" />
-            <span>{isSaving ? "Saving..." : "Save Layout"}</span>
+            <Save className="size-5" />
           </button>
         )}
+        
+        <button
+          onClick={isEditMode ? () => setIsEditMode(false) : handleAuthenticate}
+          className="inline-flex items-center justify-center p-3 rounded-full bg-accent/10 hover:bg-accent/20 text-accent transition-colors shadow-lg"
+          title={isEditMode ? "Lock grid" : "Edit layout"}
+        >
+          {isEditMode ? (
+            <Lock className="size-5" />
+          ) : (
+            <Grid3x3 className="size-5" />
+          )}
+        </button>
       </div>
 
       {/* Grid */}
