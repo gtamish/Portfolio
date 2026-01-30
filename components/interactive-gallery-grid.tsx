@@ -342,23 +342,15 @@ export function InteractiveGalleryGrid({
               {/* Project Info Overlay - Bottom, visible always for Case Studies, on hover for Visuals */}
               {!editMode && (
                 <div
-                  className={`absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-white/90 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto transition-opacity ${
+                  className={`absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-black/80 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto transition-opacity ${
                     isCaseStudy ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                   }`}
                 >
-                  <h4
-                    className={`font-semibold text-sm sm:text-base line-clamp-2 mb-1 ${
-                      textColors[project.id] === "light" ? "text-gray-900" : "text-white"
-                    }`}
-                  >
+                  <h4 className="font-semibold text-sm sm:text-base line-clamp-2 mb-1 text-white mix-blend-mode-lighten">
                     {project.title}
                   </h4>
                   {project.description && (
-                    <p
-                      className={`text-xs sm:text-sm line-clamp-2 mb-2 ${
-                        textColors[project.id] === "light" ? "text-gray-800" : "text-white/90"
-                      }`}
-                    >
+                    <p className="text-xs sm:text-sm line-clamp-2 mb-2 text-white/90 mix-blend-mode-lighten">
                       {project.description}
                     </p>
                   )}

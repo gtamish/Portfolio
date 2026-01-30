@@ -45,6 +45,17 @@ export function getContrastTextColor(bgColor: string): "light" | "dark" {
 }
 
 /**
+ * Get CSS class for contrast-aware text based on luminance
+ * Uses a combination approach: mix-blend-mode for quick effect and classes for fallback
+ * @param bgColor - Background color (hex or rgb format)
+ * @returns CSS class string
+ */
+export function getContrastTextClass(bgColor: string): string {
+  const textColor = getContrastTextColor(bgColor)
+  return textColor === "light" ? "text-white mix-blend-mode-lighten" : "text-gray-900 mix-blend-mode-darken"
+}
+
+/**
  * Get computed background color from an image element or default
  * Uses canvas to extract average color from image
  * @param imageUrl - URL of the image
@@ -95,4 +106,19 @@ export async function getAverageImageColor(imageUrl: string): Promise<string> {
 
     img.src = imageUrl
   })
+}
+
+/**
+ * Hook-friendly function to get dynamic text color for use in React components
+ * Analyzes background and returns proper contrast text color
+ * @param imageUrl - URL of the background image
+ * @returns Promise resolving to "light" or "dark"
+ */
+export async function getTextColorForImage(imageUrl: string): Promise<"light" | "dark"> {
+  try {
+    const avgColor = await getAverageImageColor(imageUrl)
+    return getContrastTextColor(avgColor)
+  } catch {
+    return "light" // Fallback to light text
+  }
 }

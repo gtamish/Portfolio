@@ -319,3 +319,30 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Luminance-based text color adjustment using mix-blend-mode */
+/* These classes provide real-time text color adjustment based on background */
+.mix-blend-mode-lighten {
+  mix-blend-mode: lighten;
+  color: white;
+}
+
+.mix-blend-mode-darken {
+  mix-blend-mode: darken;
+  color: #111827;
+}
+
+/* Fallback: High contrast text colors based on luminance analysis */
+.text-luminance-aware {
+  transition: color 150ms ease-out;
+}
+
+/* Light background - use dark text */
+.bg-light .text-luminance-aware {
+  color: #111827;
+}
+
+/* Dark background - use light text */
+.bg-dark .text-luminance-aware {
+  color: white;
+}
