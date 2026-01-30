@@ -1,14 +1,14 @@
 [
   {
-    "id": "wipro-case-study",
-    "title": "Wipro AI-Powered Platform",
-    "description": "A comprehensive case study of designing and implementing an AI-powered platform for Wipro, including user research, pain point analysis, solution architecture, and complete product design with measurable outcomes.",
+    "id": "align360-case-study",
+    "title": "Align360",
+    "description": "Align360 is a tool that helps managers capture and structure monthly one-on-one conversations, enabling better alignment, feedback, and employee growth.",
     "images": [
       {
-        "id": "wipro-hero",
+        "id": "align360-hero",
         "filename": "wipro-case-study.jpg",
-        "title": "Wipro AI Platform - Case Study",
-        "description": "Complete case study covering project overview, user personas, pain points analysis, current state assessment, solution design, implementation timeline, UI/UX mockups, and business outcomes.",
+        "title": "Align360 - Case Study",
+        "description": "Complete case study covering the design and implementation of Align360, a tool for capturing and structuring one-on-one conversations to enable better alignment, feedback, and employee growth.",
         "uploadedAt": "2026-01-30",
         "url": "/media/wipro-case-study.jpg"
       }
