@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { X, ChevronLeft, ChevronRight, Loader2, Settings2 } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { useTheme } from "next-themes"
+import { InteractiveGalleryGrid } from "@/components/interactive-gallery-grid"
 
 interface MediaItem {
   id: string
@@ -213,17 +214,6 @@ export function ProjectGallery({ filter, onFullscreenChange, onLayoutEditorOpen 
     <>
       {/* Gallery Grid - Decrease opacity when fullscreen is open */}
       <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
-        {/* Edit Layout Button */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={onLayoutEditorOpen}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent transition-colors font-medium"
-            title="Edit grid layout"
-          >
-            <Settings2 className="size-4" />
-            <span className="hidden sm:inline">Edit Layout</span>
-          </button>
-        </div>
         {isLoading ? (
           <div className="flex justify-center">
             <div className="space-y-8">
@@ -308,69 +298,13 @@ export function ProjectGallery({ filter, onFullscreenChange, onLayoutEditorOpen 
                 )
               })}
 
-              {/* Visual Projects Masonry Grid */}
+              {/* Visual Projects - Interactive Grid */}
               {filteredProjects.filter(p => p.tag === "Visuals").length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
-                  {filteredProjects.filter(p => p.tag === "Visuals").map((project) => {
-                    const heroImage = project.images[0]
-                    if (!heroImage) return null
-
-                    const imageCount = project.images.length
-                    const isImageLoaded = loadedImages.has(heroImage.id)
-                    const gridSpan = getGridSpan(project.id, heroImage.id)
-
-                    return (
-                      <div
-                        key={project.id}
-                        ref={thumbRef}
-                        onClick={(e) => handleOpenProject(project, e)}
-                        className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted ${gridSpan}`}
-                      >
-                        {/* Image Container */}
-                        <div className="relative w-full h-full overflow-hidden">
-                          {/* Featured Badge */}
-                          {project.featured && (
-                            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20">
-                              <div className="featured-chip px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-semibold shadow-lg">
-                                Featured
-                              </div>
-                            </div>
-                          )}
-                          {!isImageLoaded && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
-                              <Loader2 className="size-6 text-muted-foreground animate-spin" />
-                            </div>
-                          )}
-                          <img
-                            src={heroImage.url || `/media/${heroImage.filename}`}
-                            alt={project.title}
-                            loading="lazy"
-                            onLoad={(e) => handleImageLoadWithDimensions(heroImage.id, e)}
-                            className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-                              isImageLoaded ? "opacity-100" : "opacity-0"
-                            }`}
-                          />
-                          
-                          {/* Overlay Info */}
-                          <div className="absolute inset-0 flex flex-col justify-end">
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
-                              <div>
-                                <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
-                                {project.description && (
-                                  <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
-                                )}
-                                {imageCount > 1 && (
-                                  <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                <InteractiveGalleryGrid
+                  projects={filteredProjects.filter(p => p.tag === "Visuals")}
+                  currentLayout={customLayout}
+                  onLayoutChange={setCustomLayout}
+                />
               )}
             </div>
           </div>
