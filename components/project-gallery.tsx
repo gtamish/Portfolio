@@ -305,11 +305,6 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
           </div>
         )}
       </div>
-          })}
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Fullscreen Image Viewer */}
       {selectedProject && (
