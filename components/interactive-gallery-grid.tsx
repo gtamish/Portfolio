@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { Lock, Unlock, Save, X, GripHorizontal, GripVertical, ChevronRight, Grid3x3, Star } from "lucide-react"
+import { Lock, Unlock, Save, X, GripHorizontal, GripVertical, ChevronRight, Grid3x3, Star, Sparkles } from "lucide-react"
 import { getAverageImageColor, getContrastTextColor } from "@/lib/contrast"
 
 interface ProjectLayout {
@@ -48,6 +48,7 @@ export function InteractiveGalleryGrid({
   const [isSaving, setIsSaving] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [textColors, setTextColors] = useState<{ [key: string]: "light" | "dark" }>({})
+  const [gradientOverlays, setGradientOverlays] = useState<{ [key: string]: string }>({})
   const editMode = isEditMode ?? false
   const [dragState, setDragState] = useState<DragState>({
     projectId: null,
@@ -214,8 +215,23 @@ export function InteractiveGalleryGrid({
     return `col-span-${span.colSpan} row-span-${span.rowSpan}`
   }
 
-  // Calculate text colors for all projects on mount and when projects change
-  useEffect(() => {
+  // Gradient options
+  const gradientOptions = [
+    { label: "None", value: "" },
+    { label: "Warm", value: "bg-gradient-to-br from-orange-500/40 via-red-500/30 to-transparent" },
+    { label: "Cool", value: "bg-gradient-to-br from-blue-500/40 via-purple-500/30 to-transparent" },
+    { label: "Forest", value: "bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-transparent" },
+    { label: "Sunset", value: "bg-gradient-to-br from-amber-500/40 via-orange-500/30 to-transparent" },
+    { label: "Midnight", value: "bg-gradient-to-br from-slate-600/40 via-blue-900/30 to-transparent" },
+    { label: "Neon", value: "bg-gradient-to-br from-cyan-400/40 via-pink-500/30 to-transparent" },
+  ]
+
+  const toggleGradient = (projectId: string, gradientClass: string) => {
+    setGradientOverlays(prev => ({
+      ...prev,
+      [projectId]: prev[projectId] === gradientClass ? "" : gradientClass
+    }))
+  }
     const calculateColors = async () => {
       const colors: { [key: string]: "light" | "dark" } = {}
       for (const project of projects) {
@@ -265,6 +281,39 @@ export function InteractiveGalleryGrid({
                   className="w-full h-full object-cover"
                 />
               </div>
+
+              {/* Gradient Overlay */}
+              {gradientOverlays[project.id] && (
+                <div className={`absolute inset-0 rounded-2xl pointer-events-none ${gradientOverlays[project.id]}`} />
+              )}
+
+              {/* Gradient Feature Button - Top Left */}
+              {editMode && (
+                <div className="absolute top-3 left-3 z-20 group/gradient">
+                  <button
+                    className="p-2 rounded-full bg-accent/90 backdrop-blur-md hover:bg-accent transition-all group"
+                    title="Add gradient overlay"
+                  >
+                    <Sparkles className="size-4 text-background" />
+                  </button>
+                  {/* Gradient Menu */}
+                  <div className="hidden group-hover/gradient:flex absolute top-12 left-0 flex-col gap-1 p-2 bg-background/95 backdrop-blur-md rounded-lg border border-border/30 shadow-lg w-28">
+                    {gradientOptions.map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => toggleGradient(project.id, option.value)}
+                        className={`px-2 py-1 text-xs rounded transition-colors text-left ${
+                          gradientOverlays[project.id] === option.value
+                            ? "bg-accent text-background"
+                            : "hover:bg-accent/20 text-foreground"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Featured Badge */}
               {project.featured && !editMode && (
