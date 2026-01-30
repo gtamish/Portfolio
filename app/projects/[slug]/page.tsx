@@ -33,7 +33,6 @@ interface CaseStudyBlock {
     text?: string
     url?: string
     images?: string[]
-    caption?: string
   }
 }
 
@@ -61,10 +60,12 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
         if (!response.ok) throw new Error("Failed to fetch projects")
         
         const data = await response.json()
-        if (!Array.isArray(data)) return
+        if (!Array.isArray(data)) {
+          console.warn("[v0] Invalid data structure")
+          return
+        }
 
         let foundProject: Project | null = null
-        
         if (data.length > 0 && 'images' in data[0]) {
           foundProject = data.find((p: Project) => createSlug(p.title) === params.slug) || null
         } else {
@@ -209,8 +210,14 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
   }
 
   const blockTypeIcons: Record<CaseStudyBlock["type"], string> = {
-    heading: "H", paragraph: "¶", image: "📷", gallery: "🖼",
-    divider: "—", link: "🔗", quote: '"', video: "▶",
+    heading: "H",
+    paragraph: "¶",
+    image: "📷",
+    gallery: "🖼",
+    divider: "—",
+    link: "🔗",
+    quote: '"',
+    video: "▶",
   }
 
   return (
@@ -219,7 +226,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
       <nav className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/20">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           {isEditMode ? (
-            <span className="text-accent font-medium text-sm">Edit Mode - Changes appear in real time</span>
+            <span className="text-accent font-medium text-sm">Edit Mode - Real-time Preview</span>
           ) : (
             <Link href="/projects" className="inline-flex items-center gap-2 text-accent hover:text-accent/80 transition-colors font-medium">
               <ArrowLeft className="size-4" />
@@ -238,10 +245,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                   <Save className="size-4" />
                   {isSaving ? "Saving..." : "Publish"}
                 </button>
-                <button
-                  onClick={() => setIsEditMode(false)}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/10 text-accent transition-colors"
-                >
+                <button onClick={() => setIsEditMode(false)} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/10 text-accent transition-colors">
                   <X className="size-4" />
                 </button>
               </>
@@ -281,7 +285,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
       </nav>
 
       {isEditMode ? (
-        /* Split-View Editor */
+        // Split-View Editor
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-80px)]">
           {/* Editor Panel */}
           <div className="overflow-y-auto border-r border-border/20 bg-muted/30 p-6 space-y-6">
@@ -306,47 +310,32 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-2">Hero Images ({editImages.length})</label>
-              <div className="space-y-2 mb-3 max-h-32 overflow-y-auto">
-                {editImages.slice(0, 3).map((img, idx) => (
-                  <div key={img.id} className="flex items-center justify-between p-2 rounded bg-background border border-border/20 text-sm">
-                    <span className="truncate text-foreground/70">{idx + 1}. {img.filename}</span>
-                    <button onClick={() => setEditImages(editImages.filter(i => i.id !== img.id))} className="text-red-500 hover:text-red-600">
-                      <Trash2 className="size-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-border/20 pt-6">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Content Blocks ({blocks.length})</h3>
-              <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-                {blocks.map((block, idx) => (
+              <label className="block text-sm font-semibold text-foreground mb-2">Content Blocks ({blocks.length})</label>
+              <div className="space-y-2 mb-4">
+                {blocks.map((block) => (
                   <div
                     key={block.id}
                     onClick={() => setSelectedBlockId(block.id)}
                     className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                      selectedBlockId === block.id ? "border-accent bg-accent/10" : "border-border/20 hover:border-border/40"
+                      selectedBlockId === block.id ? "border-accent bg-accent/10" : "border-border/20"
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-lg">{blockTypeIcons[block.type]}</span>
-                        <span className="text-xs font-medium text-foreground/70 capitalize">{block.type}</span>
-                        {block.content.text && <span className="text-xs text-foreground/50 truncate">{block.content.text.substring(0, 15)}</span>}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{blockTypeIcons[block.type]}</span>
+                        <span className="text-xs font-medium text-foreground/70">{block.type}</span>
                       </div>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, "up") }} className="p-1 hover:bg-accent/20 rounded" title="Move up">
+                      <div className="flex gap-1">
+                        <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, "up") }} className="p-1 hover:bg-accent/20 rounded">
                           <ChevronUp className="size-3" />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, "down") }} className="p-1 hover:bg-accent/20 rounded" title="Move down">
+                        <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, "down") }} className="p-1 hover:bg-accent/20 rounded">
                           <ChevronDown className="size-3" />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); duplicateBlock(block.id) }} className="p-1 hover:bg-accent/20 rounded" title="Duplicate">
+                        <button onClick={(e) => { e.stopPropagation(); duplicateBlock(block.id) }} className="p-1 hover:bg-accent/20 rounded">
                           <Copy className="size-3" />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); removeBlock(block.id) }} className="p-1 hover:bg-red-500/20 text-red-500 rounded" title="Delete">
+                        <button onClick={(e) => { e.stopPropagation(); removeBlock(block.id) }} className="p-1 hover:bg-red-500/20 text-red-500 rounded">
                           <Trash2 className="size-3" />
                         </button>
                       </div>
@@ -355,16 +344,17 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                 ))}
               </div>
 
-              {selectedBlockId && blocks.find(b => b.id === selectedBlockId) && (
-                <div className="bg-background p-4 rounded-lg border border-border/20 space-y-2">
+              {selectedBlockId && (
+                <div className="bg-background p-4 rounded-lg border border-border/20 space-y-3 mb-4">
                   {(() => {
-                    const block = blocks.find(b => b.id === selectedBlockId)!
+                    const block = blocks.find(b => b.id === selectedBlockId)
+                    if (!block) return null
+
                     if (block.type === "heading" || block.type === "paragraph") {
                       return (
                         <textarea
                           value={block.content.text || ""}
                           onChange={(e) => updateBlock(block.id, { text: e.target.value })}
-                          placeholder={`Add ${block.type}...`}
                           className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 resize-none"
                           rows={3}
                         />
@@ -379,40 +369,6 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                           placeholder="Image URL"
                           className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                         />
-                      )
-                    }
-                    if (block.type === "gallery") {
-                      return (
-                        <div className="space-y-2">
-                          <div className="max-h-24 overflow-y-auto space-y-1">
-                            {(block.content.images || []).map((img, idx) => (
-                              <div key={idx} className="flex items-center justify-between p-1 bg-muted rounded text-xs">
-                                <span className="truncate text-foreground/70">{img.substring(0, 30)}</span>
-                                <button
-                                  onClick={() => removeImageFromGallery(block.id, img)}
-                                  className="text-red-500 hover:text-red-600"
-                                >
-                                  <Trash2 className="size-3" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex gap-2">
-                            <input
-                              type="url"
-                              value={newImageUrl}
-                              onChange={(e) => setNewImageUrl(e.target.value)}
-                              placeholder="Image URL"
-                              className="flex-1 px-2 py-1 rounded border border-border/30 bg-muted text-xs focus:outline-none focus:ring-2 focus:ring-accent/50"
-                            />
-                            <button
-                              onClick={() => addImageToGallery(block.id, newImageUrl)}
-                              className="px-3 py-1 rounded bg-accent text-background text-xs font-medium hover:bg-accent/90"
-                            >
-                              Add
-                            </button>
-                          </div>
-                        </div>
                       )
                     }
                     if (block.type === "link") {
@@ -435,40 +391,17 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                         </div>
                       )
                     }
-                    if (block.type === "quote") {
-                      return (
-                        <textarea
-                          value={block.content.text || ""}
-                          onChange={(e) => updateBlock(block.id, { text: e.target.value })}
-                          placeholder="Add quote..."
-                          className="w-full px-3 py-2 rounded border-l-4 border-accent bg-muted text-sm focus:outline-none resize-none italic"
-                          rows={2}
-                        />
-                      )
-                    }
-                    if (block.type === "video") {
-                      return (
-                        <input
-                          type="url"
-                          value={block.content.url || ""}
-                          onChange={(e) => updateBlock(block.id, { url: e.target.value })}
-                          placeholder="Figma/Video embed URL"
-                          className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
-                        />
-                      )
-                    }
                     return null
                   })()}
                 </div>
               )}
 
-              <div className="grid grid-cols-4 gap-2 mt-4">
-                {(["heading", "paragraph", "image", "gallery", "link", "quote", "divider", "video"] as const).map((type) => (
+              <div className="grid grid-cols-4 gap-2">
+                {(["heading", "paragraph", "image", "link", "quote", "divider", "gallery", "video"] as const).map((type) => (
                   <button
                     key={type}
                     onClick={() => addBlock(type)}
-                    className="py-2 rounded text-xs font-medium border border-border/30 hover:bg-accent/10 transition-colors"
-                    title={`Add ${type}`}
+                    className="py-2 px-1 rounded text-xs font-medium border border-border/30 hover:bg-accent/10 transition-colors"
                   >
                     {blockTypeIcons[type]}
                   </button>
@@ -478,31 +411,13 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
           </div>
 
           {/* Live Preview Panel */}
-          <div className="overflow-y-auto bg-background p-6 sm:p-8 lg:p-12">
-            <div className="max-w-3xl mx-auto">
-              {project.featured && (
-                <div className="inline-block mb-6 px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg bg-gradient-to-r from-accent to-accent/80">
-                  Featured Case Study
-                </div>
-              )}
-
-              <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6 leading-tight text-balance">
-                {editTitle || "Untitled"}
-              </h1>
-
-              {editDescription && (
-                <p className="text-base sm:text-lg text-foreground/80 leading-relaxed mb-12">
-                  {editDescription}
-                </p>
-              )}
-
+          <div className="overflow-y-auto bg-background p-6 sm:p-8">
+            <div className="max-w-3xl">
+              {editTitle && <h1 className="text-4xl font-bold text-foreground mb-6">{editTitle}</h1>}
+              {editDescription && <p className="text-lg text-foreground/80 mb-12">{editDescription}</p>}
               {editImages.length > 0 && (
-                <div className="rounded-2xl overflow-hidden bg-muted mb-12">
-                  <img
-                    src={editImages[0].url || `/media/${editImages[0].filename}`}
-                    alt={editTitle}
-                    className="w-full h-auto object-cover max-h-[500px]"
-                  />
+                <div className="rounded-lg overflow-hidden bg-muted mb-12">
+                  <img src={editImages[0].url || `/media/${editImages[0].filename}`} alt={editTitle} className="w-full h-auto max-h-[400px] object-cover" />
                 </div>
               )}
 
@@ -518,62 +433,35 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                       </a>
                     )}
                     {block.type === "quote" && <blockquote className="border-l-4 border-accent pl-4 italic text-foreground/70">{block.content.text}</blockquote>}
-                    {block.type === "divider" && <hr className="border-border/20 my-8" />}
+                    {block.type === "divider" && <hr className="border-border/20" />}
                   </div>
                 ))}
               </div>
-
-              {editImages.length > 1 && (
-                <div className="mt-12 pt-12 border-t border-border/20">
-                  <h2 className="text-2xl font-bold text-foreground mb-8">Project Details</h2>
-                  <div className="space-y-8">
-                    {editImages.slice(1).map((img) => (
-                      <div key={img.id} className="rounded-lg overflow-hidden bg-muted">
-                        <img src={img.url || `/media/${img.filename}`} alt={img.title} className="w-full h-auto object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
       ) : (
-        /* Normal View */
+        // Normal View
         <>
           <section className="relative pt-8 sm:pt-12 lg:pt-16 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
-              {project?.featured && (
-                <div className="inline-block mb-6 px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg bg-gradient-to-r from-accent to-accent/80">
-                  Featured Case Study
+              {project.featured && (
+                <div className="inline-block mb-6">
+                  <div className="featured-chip px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg">Featured Case Study</div>
                 </div>
               )}
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight text-balance">
-                {project?.title}
-              </h1>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">{project.title}</h1>
+              {project.description && <p className="text-lg text-foreground/80 mb-12 max-w-3xl">{project.description}</p>}
 
-              {project?.description && (
-                <p className="text-base sm:text-lg lg:text-xl text-foreground/80 leading-relaxed max-w-3xl mb-12">
-                  {project.description}
-                </p>
-              )}
-
-              {project && project.images.length > 0 && (
-                <div className="relative rounded-2xl overflow-hidden bg-muted mb-12">
-                  <div className={`relative w-full transition-opacity duration-300 ${loadedImages.has(project.images[0].id) ? "opacity-100" : "opacity-0"}`}>
-                    <img
-                      src={project.images[0].url || `/media/${project.images[0].filename}`}
-                      alt={project.title}
-                      onLoad={() => handleImageLoad(project.images[0].id)}
-                      className="w-full h-auto object-contain max-h-[600px]"
-                    />
-                  </div>
-                  {!loadedImages.has(project.images[0].id) && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Loader2 className="size-8 text-accent animate-spin" />
-                    </div>
-                  )}
+              {project.images.length > 0 && (
+                <div className="rounded-2xl overflow-hidden bg-muted mb-12">
+                  <img
+                    src={project.images[0].url || `/media/${project.images[0].filename}`}
+                    alt={project.title}
+                    onLoad={() => handleImageLoad(project.images[0].id)}
+                    className="w-full h-auto object-contain max-h-[600px]"
+                  />
                 </div>
               )}
             </div>
@@ -581,29 +469,20 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
 
           <section className="pb-16 sm:pb-20 lg:pb-24 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
-              {project && project.images.length > 1 && (
-                <div className="space-y-12">
-                  <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">Project Details</h2>
-                    <div className="grid gap-8">
-                      {project.images.slice(1).map((image, idx) => (
-                        <div key={image.id} className="group relative rounded-xl overflow-hidden bg-muted">
-                          <div className={`relative w-full transition-opacity duration-300 ${loadedImages.has(image.id) ? "opacity-100" : "opacity-0"}`}>
-                            <img
-                              src={image.url || `/media/${image.filename}`}
-                              alt={`${project.title} - Detail ${idx + 2}`}
-                              onLoad={() => handleImageLoad(image.id)}
-                              className="w-full h-auto object-contain"
-                            />
-                          </div>
-                          {!loadedImages.has(image.id) && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <Loader2 className="size-6 text-accent animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+              {project.images.length > 1 && (
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">Project Details</h2>
+                  <div className="space-y-8">
+                    {project.images.slice(1).map((image) => (
+                      <div key={image.id} className="rounded-xl overflow-hidden bg-muted">
+                        <img
+                          src={image.url || `/media/${image.filename}`}
+                          alt={image.title}
+                          onLoad={() => handleImageLoad(image.id)}
+                          className="w-full h-auto object-contain"
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -614,7 +493,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                     <p className="text-foreground/70 text-sm mb-2">Ready to see more projects?</p>
                     <h3 className="text-lg font-semibold text-foreground">Explore More Work</h3>
                   </div>
-                  <Link href="/projects" className="btn-interactive px-6 py-3 rounded-full bg-accent text-background font-medium hover:opacity-90 transition-opacity whitespace-nowrap">
+                  <Link href="/projects" className="px-6 py-3 rounded-full bg-accent text-background font-medium hover:opacity-90 transition-opacity">
                     Back to Gallery
                   </Link>
                 </div>
