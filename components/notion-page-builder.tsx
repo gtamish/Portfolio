@@ -41,10 +41,25 @@ export function NotionPageBuilder({ isOpen, onClose, projectId, projectTitle, on
   const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null)
   const dragOverIndex = useRef<number>(-1)
 
+  // Load existing content function
+  const loadExistingContent = async () => {
+    try {
+      const response = await fetch(`/api/case-study/${projectId}`)
+      const data = await response.json()
+      if (data.sections && Array.isArray(data.sections)) {
+        // Convert old format to new block format if needed
+        setBlocks(data.sections || [])
+      }
+    } catch (err) {
+      console.log("[v0] No existing content found")
+    }
+  }
+
   useEffect(() => {
     setMounted(true)
     if (isInline) {
-      // For inline mode, load directly without modal
+      // For inline mode, authenticate automatically and load content
+      setIsAuthenticated(true)
       loadExistingContent()
     }
   }, [isInline])
@@ -81,19 +96,6 @@ export function NotionPageBuilder({ isOpen, onClose, projectId, projectTitle, on
       setError("Verification failed")
     } finally {
       setIsChecking(false)
-    }
-  }
-
-  const loadExistingContent = async () => {
-    try {
-      const response = await fetch(`/api/case-study/${projectId}`)
-      const data = await response.json()
-      if (data.sections && Array.isArray(data.sections)) {
-        // Convert old format to new block format if needed
-        setBlocks(data.sections || [])
-      }
-    } catch (err) {
-      console.log("[v0] No existing content found")
     }
   }
 
@@ -256,7 +258,7 @@ export function NotionPageBuilder({ isOpen, onClose, projectId, projectTitle, on
                             <Copy className="size-4" />
                           </button>
                           <button
-                            onClick={() => deleteBlock(block.id)}
+                            onClick={() => removeBlock(block.id)}
                             className="p-1.5 rounded hover:bg-red-500/10 text-red-500"
                             title="Delete"
                           >
