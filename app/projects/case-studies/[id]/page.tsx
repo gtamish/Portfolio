@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2, Edit2 } from "lucide-react"
 import { useTheme } from "next-themes"
+import { CaseStudyEditModal } from "@/components/case-study-edit-modal"
 
 interface MediaItem {
   id: string
@@ -30,6 +31,7 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const { theme } = useTheme()
 
   useEffect(() => {
@@ -133,6 +135,16 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
               {project?.title}
             </h2>
           </div>
+
+          {/* Edit Button */}
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/10 text-accent transition-colors"
+            title="Edit case study"
+          >
+            <Edit2 className="size-4" />
+            <span className="hidden sm:inline text-sm font-medium">Edit</span>
+          </button>
         </div>
       </nav>
 
@@ -233,6 +245,14 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </section>
+
+      {/* Edit Modal */}
+      <CaseStudyEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        projectId={project.id}
+        projectTitle={project.title}
+      />
     </main>
   )
 }
