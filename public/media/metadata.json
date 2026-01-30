@@ -1,11 +1,11 @@
 [
   {
-    "id": "align360-case-study-1",
-    "filename": "wipro-case-study.jpg",
+    "id": "align360-hero-1",
+    "filename": "align360-hero.jpg",
     "title": "Align360",
-    "description": "Align360 is a tool that helps managers capture and structure monthly one-on-one conversations, enabling better alignment, feedback, and employee growth.",
+    "description": "Align360 is a comprehensive platform designed to help managers capture and structure monthly one-on-one conversations, enabling better alignment, feedback delivery, and employee growth. The case study demonstrates a complete product design lifecycle including user research with 6 distinct personas, comprehensive objectives & goals definition, current state assessment, innovative solution architecture, detailed UI/UX design mockups across multiple screens, implementation strategy, and quantifiable business outcomes.",
     "uploadedAt": "2026-01-30",
-    "url": "/media/wipro-case-study.jpg",
+    "url": "/media/align360-hero.jpg",
     "tag": "Case Studies",
     "featured": true
   }
