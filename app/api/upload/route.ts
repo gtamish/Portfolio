@@ -183,8 +183,14 @@ export async function GET() {
       }
     }
     
-    console.log("[v0] Returning metadata with", metadata.length, "items")
-    return NextResponse.json(metadata, {
+    // Enforce one featured project rule: only Align360 should be featured
+    const processedMetadata = metadata.map((item: any) => ({
+      ...item,
+      featured: item.title === "Align360" ? true : false
+    }))
+    
+    console.log("[v0] Returning metadata with", processedMetadata.length, "items")
+    return NextResponse.json(processedMetadata, {
       headers: {
         "Cache-Control": "no-store, must-revalidate",
         "Pragma": "no-cache",
