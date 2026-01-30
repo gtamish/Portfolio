@@ -381,6 +381,40 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                         />
                       )
                     }
+                    if (block.type === "gallery") {
+                      return (
+                        <div className="space-y-2">
+                          <div className="max-h-24 overflow-y-auto space-y-1">
+                            {(block.content.images || []).map((img, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-1 bg-muted rounded text-xs">
+                                <span className="truncate text-foreground/70">{img.substring(0, 30)}</span>
+                                <button
+                                  onClick={() => removeImageFromGallery(block.id, img)}
+                                  className="text-red-500 hover:text-red-600"
+                                >
+                                  <Trash2 className="size-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <input
+                              type="url"
+                              value={newImageUrl}
+                              onChange={(e) => setNewImageUrl(e.target.value)}
+                              placeholder="Image URL"
+                              className="flex-1 px-2 py-1 rounded border border-border/30 bg-muted text-xs focus:outline-none focus:ring-2 focus:ring-accent/50"
+                            />
+                            <button
+                              onClick={() => addImageToGallery(block.id, newImageUrl)}
+                              className="px-3 py-1 rounded bg-accent text-background text-xs font-medium hover:bg-accent/90"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    }
                     if (block.type === "link") {
                       return (
                         <div className="space-y-2">
@@ -399,6 +433,28 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                             className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                           />
                         </div>
+                      )
+                    }
+                    if (block.type === "quote") {
+                      return (
+                        <textarea
+                          value={block.content.text || ""}
+                          onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                          placeholder="Add quote..."
+                          className="w-full px-3 py-2 rounded border-l-4 border-accent bg-muted text-sm focus:outline-none resize-none italic"
+                          rows={2}
+                        />
+                      )
+                    }
+                    if (block.type === "video") {
+                      return (
+                        <input
+                          type="url"
+                          value={block.content.url || ""}
+                          onChange={(e) => updateBlock(block.id, { url: e.target.value })}
+                          placeholder="Figma/Video embed URL"
+                          className="w-full px-3 py-2 rounded border border-border/30 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                        />
                       )
                     }
                     return null
