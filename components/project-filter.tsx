@@ -28,8 +28,8 @@ export function ProjectFilter({ onFilterChange }: ProjectFilterProps) {
         }}
         className={`btn-interactive px-4 py-2 rounded-full text-sm font-medium transition-all ${
           selectedTag === null
-            ? "bg-primary text-primary-foreground shadow-md"
-            : "bg-background/40 text-foreground hover:bg-accent/20 border border-border"
+            ? "bg-white text-black shadow-md opacity-100"
+            : "bg-background/40 text-foreground border border-border hover:bg-muted hover:text-muted-foreground opacity-60"
         }`}
       >
         All
@@ -40,8 +40,8 @@ export function ProjectFilter({ onFilterChange }: ProjectFilterProps) {
           onClick={() => handleTagClick(tag)}
           className={`btn-interactive px-4 py-2 rounded-full text-sm font-medium transition-all ${
             selectedTag === tag
-              ? "bg-primary text-primary-foreground shadow-md"
-              : "bg-background/40 text-foreground hover:bg-accent/20 border border-border"
+              ? "bg-white text-black shadow-md opacity-100"
+              : "bg-background/40 text-foreground border border-border hover:bg-muted hover:text-muted-foreground opacity-60"
           }`}
         >
           {tag}
