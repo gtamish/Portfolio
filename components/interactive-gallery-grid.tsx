@@ -269,22 +269,24 @@ export function InteractiveGalleryGrid({
                 />
               </div>
 
-              {/* Case Study Overlay - Always show when not in edit mode */}
-              {!isEditMode && isCaseStudy && (
-                <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-end justify-end pointer-events-none p-4 sm:p-6">
-                  <div className="text-right">
+              {/* Project Overlay - Show for all projects when not in edit mode */}
+              {!isEditMode && (
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-start justify-end pointer-events-none p-4 sm:p-6">
+                  <div className="text-left">
                     <h4 className="text-white font-semibold text-sm sm:text-base mb-2">
                       {project.title}
                     </h4>
                     {project.description && (
-                      <p className="text-white/80 text-xs sm:text-sm line-clamp-2 mb-2">
+                      <p className="text-white/80 text-xs sm:text-sm line-clamp-2 mb-3">
                         {project.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-2 text-accent font-semibold text-xs sm:text-sm group-hover:translate-x-1 transition-transform">
-                      <span>Read case study</span>
-                      <ChevronRight className="size-4" />
-                    </div>
+                    {isCaseStudy && (
+                      <div className="flex items-center gap-2 text-accent font-semibold text-xs sm:text-sm group-hover:translate-x-1 transition-transform">
+                        <span>Read case study</span>
+                        <ChevronRight className="size-4" />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
