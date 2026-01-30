@@ -341,8 +341,8 @@ export function InteractiveGalleryGrid({
                     }
                   `}</style>
                   <div className="featured-gradient flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg">
-                    <Star className="size-3.5 fill-white text-white" />
-                    <span className="text-xs font-semibold text-white">Featured</span>
+                    <Star className="size-3.5 fill-current text-current" />
+                    <span className="text-xs font-semibold text-current">Featured</span>
                   </div>
                 </div>
               )}
@@ -350,15 +350,15 @@ export function InteractiveGalleryGrid({
               {/* Project Info Overlay - Bottom, visible always for Case Studies, on hover for Visuals */}
               {!editMode && (
                 <div
-                  className={`absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-black/80 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto transition-opacity ${
+                  className={`absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-card/80 backdrop-blur-md rounded-b-2xl flex flex-col justify-end h-auto transition-opacity ${
                     isCaseStudy ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                   }`}
                 >
-                  <h4 className="font-semibold text-sm sm:text-base line-clamp-2 mb-1 text-white mix-blend-mode-lighten">
+                  <h4 className="font-semibold text-sm sm:text-base line-clamp-2 mb-1 text-card-foreground mix-blend-mode-lighten">
                     {project.title}
                   </h4>
                   {project.description && (
-                    <p className="text-xs sm:text-sm line-clamp-2 mb-2 text-white/90 mix-blend-mode-lighten">
+                    <p className="text-xs sm:text-sm line-clamp-2 mb-2 text-card-foreground/90 mix-blend-mode-lighten">
                       {project.description}
                     </p>
                   )}
@@ -373,15 +373,15 @@ export function InteractiveGalleryGrid({
 
               {/* Edit Mode Overlay */}
               {editMode && (
-                <div className="absolute inset-0 rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 rounded-2xl bg-card/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                   <div className="space-y-4 text-center">
-                    <h4 className="text-white font-semibold text-sm">
+                    <h4 className="text-card-foreground font-semibold text-sm">
                       {project.title}
                     </h4>
-                    <p className="text-white/70 text-xs">
+                    <p className="text-card-foreground/70 text-xs">
                       {layout[project.id]?.colSpan || 1}×{layout[project.id]?.rowSpan || 1}
                     </p>
-                    <p className="text-white/50 text-xs">
+                    <p className="text-card-foreground/50 text-xs">
                       Drag borders to resize
                     </p>
                   </div>

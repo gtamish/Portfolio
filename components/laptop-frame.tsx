@@ -40,12 +40,12 @@ export function LaptopFrame({ url, alt = 'Prototype', className = '' }: LaptopFr
 
   return (
     <div className={`relative w-full ${className}`}>
-      <div className="relative bg-gradient-to-b from-gray-900 to-black rounded-xl shadow-2xl overflow-hidden border-8 border-gray-800">
+      <div className="relative bg-gradient-to-b from-muted to-muted/80 rounded-xl shadow-2xl overflow-hidden border-8 border-muted">
         {/* Laptop bezel */}
-        <div className="absolute inset-0 rounded-lg border border-gray-700 pointer-events-none" />
+        <div className="absolute inset-0 rounded-lg border border-border pointer-events-none" />
         
         {/* Screen */}
-        <div className="relative bg-black aspect-video overflow-hidden">
+        <div className="relative bg-background aspect-video overflow-hidden">
           {embedUrl ? (
             <iframe
               src={embedUrl}
@@ -56,8 +56,8 @@ export function LaptopFrame({ url, alt = 'Prototype', className = '' }: LaptopFr
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-900">
-              <p className="text-gray-500 text-sm">Enter a Figma prototype URL</p>
+            <div className="w-full h-full flex items-center justify-center bg-muted">
+              <p className="text-muted-foreground text-sm">Enter a Figma prototype URL</p>
             </div>
           )}
         </div>
@@ -65,8 +65,8 @@ export function LaptopFrame({ url, alt = 'Prototype', className = '' }: LaptopFr
 
       {/* Laptop stand/base */}
       <div className="relative mt-0">
-        <div className="mx-auto w-2/3 h-2 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 rounded-full" />
-        <div className="mx-auto w-1/2 h-8 bg-gray-800 rounded-b-2xl shadow-xl" />
+        <div className="mx-auto w-2/3 h-2 bg-gradient-to-r from-muted via-muted/80 to-muted rounded-full" />
+        <div className="mx-auto w-1/2 h-8 bg-muted rounded-b-2xl shadow-xl" />
       </div>
     </div>
   )

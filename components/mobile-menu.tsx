@@ -97,7 +97,7 @@ export function MobileMenu({ onEditClick }: MobileMenuProps) {
           )}
 
           {/* Divider */}
-          <div className="my-2 h-px bg-white/10" />
+          <div className="my-2 h-px bg-border" />
 
           {/* External Links */}
           {externalLinks.map((link) => (
