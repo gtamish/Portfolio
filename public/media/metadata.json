@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "id": "wipro-case-study",
+    "title": "Wipro AI-Powered Platform",
+    "description": "A comprehensive case study of designing and implementing an AI-powered platform for Wipro, including user research, pain point analysis, solution architecture, and complete product design with measurable outcomes.",
+    "images": [
+      {
+        "id": "wipro-hero",
+        "filename": "wipro-case-study.jpg",
+        "title": "Wipro AI Platform - Case Study",
+        "description": "Complete case study covering project overview, user personas, pain points analysis, current state assessment, solution design, implementation timeline, UI/UX mockups, and business outcomes.",
+        "uploadedAt": "2026-01-30",
+        "url": "/media/wipro-case-study.jpg"
+      }
+    ],
+    "tag": "Case Studies",
+    "featured": true,
+    "uploadedAt": "2026-01-30"
+  }]
