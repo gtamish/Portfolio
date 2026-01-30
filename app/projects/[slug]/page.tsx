@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Loader2, Edit2, X, Save, Plus, Trash2, Copy, Move, GripVertical, Image as ImageIcon } from 'lucide-react'
 import { createSlug } from '@/lib/slug'
 import { LaptopFrame } from '@/components/laptop-frame'
+import { StickyHeader } from '@/components/sticky-header'
 import { getContrastTextColor, getAverageImageColor } from '@/lib/contrast'
 
 interface MediaItem {
@@ -409,6 +410,9 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
           </button>
         </div>
       </nav>
+
+      {/* Sticky Header with Case Study Title */}
+      {project && <StickyHeader title={project.title} />}
 
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
