@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { useTheme } from "next-themes"
+import { CaseStudiesDisplay } from "@/components/case-studies-display"
 
 interface MediaItem {
   id: string
@@ -160,6 +161,14 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     <>
       {/* Gallery Grid - Decrease opacity when fullscreen is open */}
       <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
+        {/* Case Studies Section - Display above Visual Projects */}
+        {filteredProjects.some(p => p.tag === "Case Studies") && (
+          <div className="mb-16 sm:mb-20">
+            <CaseStudiesDisplay projects={filteredProjects} onImageLoad={handleImageLoad} />
+          </div>
+        )}
+
+        {/* Visual Projects Grid */}
         {isLoading ? (
           <div className="flex justify-center">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
@@ -168,18 +177,15 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
               ))}
             </div>
           </div>
-        ) : filteredProjects.length === 0 ? (
+        ) : filteredProjects.filter(p => p.tag === "Visuals").length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No projects found in this category</p>
+            <p className="text-muted-foreground text-lg">No visual projects found in this category</p>
           </div>
         ) : (
           <div className="flex justify-center">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
-              {filteredProjects.map((project) => {
+              {filteredProjects.filter(p => p.tag === "Visuals").map((project) => {
                 const imageCount = project.images.length
-                const isVisual = project.tag === "Visuals"
-                // Visuals: 1:1 (single grid cell), Case Studies: 2:2 (double width and height)
-                const span = isVisual ? "" : "md:col-span-2 md:row-span-2"
                 const heroImage = project.images[0]
                 const isImageLoaded = loadedImages.has(heroImage.id)
 
@@ -188,15 +194,9 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
                 key={project.id}
                 ref={thumbRef}
                 onClick={(e) => {
-                  if (project.tag === "Case Studies") {
-                    // Find the index of this case study among all case studies for navigation
-                    const caseStudyIndex = filteredProjects.filter(p => p.tag === "Case Studies").findIndex(p => p.id === project.id)
-                    handleCaseStudyClick(caseStudyIndex)
-                  } else {
-                    handleOpenProject(project, e)
-                  }
+                  handleOpenProject(project, e)
                 }}
-                className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted ${span}`}
+                className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted`}
               >
                 {/* Image Container */}
                 <div className="relative w-full h-full overflow-hidden">
@@ -218,43 +218,28 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
                     alt={project.title}
                     loading="lazy"
                     onLoad={() => handleImageLoad(heroImage.id)}
-                    className={`w-full h-full object-cover transition-all duration-500 ${project.tag === "Case Studies" ? "" : "group-hover:scale-105"} ${
+                    className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
                       isImageLoaded ? "opacity-100" : "opacity-0"
                     }`}
                   />
                   
-                  {/* Case Study: Always Show Content */}
-                  {project.tag === "Case Studies" && (
-                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 via-black/30 to-transparent p-4 sm:p-6">
+                  {/* Overlay Info - Visual Projects */}
+                  <div className="absolute inset-0 flex flex-col justify-end">
+                    {/* Subtle dark overlay for contrast */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {/* Text content */}
+                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
                       <div>
-                        <h3 className="text-white font-bold text-lg sm:text-xl line-clamp-2">{project.title}</h3>
+                        <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
                         {project.description && (
-                          <p className="text-white/90 text-xs sm:text-sm mt-2 line-clamp-3">{project.description}</p>
+                          <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
                         )}
-                        <p className="text-white/70 text-xs mt-3 font-medium">Read case study →</p>
+                        {imageCount > 1 && (
+                          <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
+                        )}
                       </div>
                     </div>
-                  )}
-
-                  {/* Overlay Info - Visual Projects Only */}
-                  {project.tag === "Visuals" && (
-                    <div className="absolute inset-0 flex flex-col justify-end">
-                      {/* Subtle dark overlay for contrast */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      {/* Text content */}
-                      <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
-                        <div>
-                          <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
-                          {project.description && (
-                            <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
-                          )}
-                          {imageCount > 1 && (
-                            <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )
