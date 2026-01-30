@@ -29,6 +29,7 @@ interface Project {
 export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void }) {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [selectedCaseStudy, setSelectedCaseStudy] = useState<Project | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
@@ -89,7 +90,7 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
 
   // Disable scroll when fullscreen is open
   useEffect(() => {
-    if (selectedProject) {
+    if (selectedProject || selectedCaseStudy) {
       document.body.style.overflow = "hidden"
       onFullscreenChange?.(true)
     } else {
@@ -100,7 +101,7 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     return () => {
       document.body.style.overflow = "unset"
     }
-  }, [selectedProject, onFullscreenChange])
+  }, [selectedProject, selectedCaseStudy, onFullscreenChange])
 
   const handleImageLoad = (id: string) => {
     console.log("[v0] Image loaded:", id)
@@ -116,6 +117,11 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     setCurrentImageIndex(0)
   }
 
+  const handleOpenCaseStudy = (project: Project) => {
+    setSelectedCaseStudy(project)
+    setCurrentImageIndex(0)
+  }
+
   const handleCloseModal = () => {
     setIsClosing(true)
     setTimeout(() => {
@@ -123,6 +129,10 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
       setIsClosing(false)
       setThumbRect(null)
     }, 300)
+  }
+
+  const handleCloseCaseStudy = () => {
+    setSelectedCaseStudy(null)
   }
 
   const handleNextImage = () => {
@@ -142,7 +152,7 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
   return (
     <>
       {/* Gallery Grid - Decrease opacity when fullscreen is open */}
-      <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
+      <div className={`transition-opacity duration-300 ${selectedProject || selectedCaseStudy ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
         {isLoading ? (
           <div className="flex justify-center">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
@@ -170,8 +180,15 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
               <div
                 key={project.id}
                 ref={thumbRef}
-                onClick={(e) => handleOpenProject(project, e)}
+                onClick={(e) => {
+                  if (project.tag === "Case Studies") {
+                    handleOpenCaseStudy(project)
+                  } else {
+                    handleOpenProject(project, e)
+                  }
+                }}
                 className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted ${span}`}
+                style={project.tag === "Case Studies" ? { cursor: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><text x=\"2\" y=\"18\" font-size=\"12\" fill=\"currentColor\">Read</text></svg>') 12 20, pointer" } : {}}
               >
                 {/* Image Container */}
                 <div className="relative w-full h-full overflow-hidden">
@@ -193,28 +210,43 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
                     alt={project.title}
                     loading="lazy"
                     onLoad={() => handleImageLoad(heroImage.id)}
-                    className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+                    className={`w-full h-full object-cover transition-all duration-500 ${project.tag === "Case Studies" ? "" : "group-hover:scale-105"} ${
                       isImageLoaded ? "opacity-100" : "opacity-0"
                     }`}
                   />
                   
-                  {/* Overlay Info */}
-                  <div className="absolute inset-0 flex flex-col justify-end">
-                    {/* Subtle dark overlay for contrast */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    {/* Text content */}
-                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
+                  {/* Case Study: Always Show Content */}
+                  {project.tag === "Case Studies" && (
+                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 via-black/30 to-transparent p-4 sm:p-6">
                       <div>
-                        <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
+                        <h3 className="text-white font-bold text-lg sm:text-xl line-clamp-2">{project.title}</h3>
                         {project.description && (
-                          <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
+                          <p className="text-white/90 text-xs sm:text-sm mt-2 line-clamp-3">{project.description}</p>
                         )}
-                        {imageCount > 1 && (
-                          <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
-                        )}
+                        <p className="text-white/70 text-xs mt-3 font-medium">Read case study →</p>
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Overlay Info - Visual Projects Only */}
+                  {project.tag === "Visuals" && (
+                    <div className="absolute inset-0 flex flex-col justify-end">
+                      {/* Subtle dark overlay for contrast */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      {/* Text content */}
+                      <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
+                        <div>
+                          <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
+                          {project.description && (
+                            <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
+                          )}
+                          {imageCount > 1 && (
+                            <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )
@@ -341,6 +373,48 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
             </div>
           </div>
         </>
+      )}
+
+      {/* Case Study Detail Page */}
+      {selectedCaseStudy && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-background overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/20">
+            <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">{selectedCaseStudy.title}</h1>
+              <button
+                onClick={handleCloseCaseStudy}
+                className="btn-interactive p-2 rounded-full hover:bg-accent/20 transition-colors"
+                aria-label="Close case study"
+              >
+                <X className="size-5 sm:size-6 text-foreground" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 max-w-6xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+            {/* Description */}
+            {selectedCaseStudy.description && (
+              <div className="mb-8 sm:mb-12">
+                <p className="text-base sm:text-lg text-foreground/90 leading-relaxed">{selectedCaseStudy.description}</p>
+              </div>
+            )}
+
+            {/* Images Gallery */}
+            <div className="space-y-6 sm:space-y-8">
+              {selectedCaseStudy.images.map((image, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <img
+                    src={image.url || `/media/${image.filename}`}
+                    alt={`${selectedCaseStudy.title} - Image ${idx + 1}`}
+                    className="w-full max-w-4xl rounded-xl object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </>
   )
