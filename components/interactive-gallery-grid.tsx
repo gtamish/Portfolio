@@ -244,9 +244,9 @@ export function InteractiveGalleryGrid({
                 />
               </div>
 
-              {/* Project Info Overlay - Sticky header when expanded */}
-              {!editMode && (layout[project.id]?.colSpan || 1) > 1 || (layout[project.id]?.rowSpan || 1) > 1 ? (
-                <div className="absolute top-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-b from-black/80 via-black/60 to-transparent">
+              {/* Project Info Overlay - Sticky header when expanded (Case Studies only) */}
+              {!editMode && isCaseStudy && ((layout[project.id]?.colSpan || 1) > 1 || (layout[project.id]?.rowSpan || 1) > 1) ? (
+                <div className="absolute top-0 left-0 right-0 p-4 sm:p-6 bg-black/80 backdrop-blur-md">
                   <h4 className="text-white font-semibold text-base sm:text-lg line-clamp-2">
                     {project.title}
                   </h4>
@@ -255,12 +255,10 @@ export function InteractiveGalleryGrid({
                       {project.description}
                     </p>
                   )}
-                  {isCaseStudy && (
-                    <div className="flex items-center gap-2 text-accent font-semibold text-sm mt-3 group-hover:translate-x-1 transition-transform">
-                      <span>Read case study</span>
-                      <ChevronRight className="size-4" />
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 text-accent font-semibold text-sm mt-3 group-hover:translate-x-1 transition-transform">
+                    <span>Read case study</span>
+                    <ChevronRight className="size-4" />
+                  </div>
                 </div>
               ) : (
                 /* Project Overlay - Show for standard 1x1 projects when not in edit mode */
