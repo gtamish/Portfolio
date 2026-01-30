@@ -2,6 +2,7 @@
 
 import { Grid3x3 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 
 interface LayoutToggleProps {
   isEditMode: boolean
@@ -12,21 +13,15 @@ interface LayoutToggleProps {
 
 export function LayoutToggle({ isEditMode, onToggle, onSave, isSaving }: LayoutToggleProps) {
   const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
+  const isProjectsPage = pathname === "/projects"
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  if (!mounted) {
-    return (
-      <button
-        disabled
-        className="icon-button inline-flex items-center justify-center rounded-full bg-background/60 p-3 backdrop-blur-2xl shadow-lg transition-colors"
-        aria-label="Edit layout"
-      >
-        <Grid3x3 className="size-5" />
-      </button>
-    )
+  if (!mounted || !isProjectsPage) {
+    return null
   }
 
   return (
