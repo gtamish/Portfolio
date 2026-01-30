@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { useTheme } from "next-themes"
-import { CaseStudiesDisplay } from "@/components/case-studies-display"
 
 interface MediaItem {
   id: string
@@ -161,88 +160,151 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     <>
       {/* Gallery Grid - Decrease opacity when fullscreen is open */}
       <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
-        {/* Case Studies Section - Display above Visual Projects */}
-        {filteredProjects.some(p => p.tag === "Case Studies") && (
-          <div className="mb-16 sm:mb-20">
-            <CaseStudiesDisplay projects={filteredProjects} onImageLoad={handleImageLoad} />
-          </div>
-        )}
-
-        {/* Visual Projects Grid */}
         {isLoading ? (
           <div className="flex justify-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="rounded-2xl bg-accent/10 border animate-pulse" />
-              ))}
+            <div className="space-y-8">
+              {/* Case Study Skeleton */}
+              <div className="rounded-2xl bg-accent/10 border animate-pulse h-96" />
+              {/* Visual Projects Grid Skeleton */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="rounded-2xl bg-accent/10 border animate-pulse" />
+                ))}
+              </div>
             </div>
           </div>
-        ) : filteredProjects.filter(p => p.tag === "Visuals").length === 0 ? (
+        ) : filteredProjects.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No visual projects found in this category</p>
+            <p className="text-muted-foreground text-lg">No projects found in this category</p>
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
-              {filteredProjects.filter(p => p.tag === "Visuals").map((project) => {
-                const imageCount = project.images.length
+            <div className="w-full space-y-6 sm:space-y-8">
+              {/* Dynamic Gallery combining Case Studies and Visual Projects */}
+              {filteredProjects.map((project, projectIndex) => {
                 const heroImage = project.images[0]
-                const isImageLoaded = loadedImages.has(heroImage.id)
+                if (!heroImage) return null
 
-            return (
-              <div
-                key={project.id}
-                ref={thumbRef}
-                onClick={(e) => {
-                  handleOpenProject(project, e)
-                }}
-                className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted`}
-              >
-                {/* Image Container */}
-                <div className="relative w-full h-full overflow-hidden">
-                  {/* Featured Badge */}
-                  {project.featured && (
-                    <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20">
-                      <div className="featured-chip px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-semibold shadow-lg">
-                        Featured
+                // Case Study: Full-width 1:2 horizontal layout
+                if (project.tag === "Case Studies") {
+                  return (
+                    <div
+                      key={project.id}
+                      onClick={() => {
+                        const caseStudyIndex = filteredProjects.filter(p => p.tag === "Case Studies").findIndex(p => p.id === project.id)
+                        router.push(`/projects/case-studies/${caseStudyIndex}`)
+                      }}
+                      className="group cursor-pointer rounded-2xl overflow-hidden bg-muted transition-all duration-300 hover:shadow-lg hover:shadow-accent/20"
+                    >
+                      {/* 1:2 Horizontal Layout */}
+                      <div className="grid grid-cols-3 gap-0 min-h-80 sm:min-h-96">
+                        {/* Left: Image (1 part) */}
+                        <div className="col-span-1 relative overflow-hidden">
+                          {!loadedImages.has(heroImage.id) && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
+                              <Loader2 className="size-6 text-muted-foreground animate-spin" />
+                            </div>
+                          )}
+                          <img
+                            src={heroImage.url || `/media/${heroImage.filename}`}
+                            alt={project.title}
+                            loading="lazy"
+                            onLoad={() => handleImageLoad(heroImage.id)}
+                            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                              loadedImages.has(heroImage.id) ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                        </div>
+
+                        {/* Right: Content (2 parts) */}
+                        <div className="col-span-2 flex flex-col justify-center p-6 sm:p-8 lg:p-10 bg-white/10 backdrop-blur-md">
+                          <div className="space-y-4">
+                            {project.featured && (
+                              <div className="featured-chip px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-semibold w-fit">
+                                Featured
+                              </div>
+                            )}
+                            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground line-clamp-2">
+                              {project.title}
+                            </h3>
+                            
+                            {project.description && (
+                              <p className="text-sm sm:text-base text-foreground/80 leading-relaxed line-clamp-4">
+                                {project.description}
+                              </p>
+                            )}
+
+                            {/* Read Case Study CTA */}
+                            <div className="flex items-center gap-2 text-accent font-semibold mt-6 group-hover:translate-x-2 transition-transform duration-300">
+                              <span>Read case study</span>
+                              <ChevronRight className="size-5" strokeWidth={2} />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  )}
-                  {!isImageLoaded && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
-                      <Loader2 className="size-6 text-muted-foreground animate-spin" />
-                    </div>
-                  )}
-                  <img
-                    src={heroImage.url || `/media/${heroImage.filename}`}
-                    alt={project.title}
-                    loading="lazy"
-                    onLoad={() => handleImageLoad(heroImage.id)}
-                    className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-                      isImageLoaded ? "opacity-100" : "opacity-0"
-                    }`}
-                  />
-                  
-                  {/* Overlay Info - Visual Projects */}
-                  <div className="absolute inset-0 flex flex-col justify-end">
-                    {/* Subtle dark overlay for contrast */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    {/* Text content */}
-                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
-                      <div>
-                        <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
-                        {project.description && (
-                          <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
-                        )}
-                        {imageCount > 1 && (
-                          <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
-                        )}
+                  )
+                }
+
+                // Visual Project: Grid item
+                const imageCount = project.images.length
+                const isImageLoaded = loadedImages.has(heroImage.id)
+
+                return (
+                  <div
+                    key={project.id}
+                    ref={thumbRef}
+                    onClick={(e) => handleOpenProject(project, e)}
+                    className="group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 bg-muted h-80 sm:h-96"
+                  >
+                    {/* Image Container */}
+                    <div className="relative w-full h-full overflow-hidden">
+                      {/* Featured Badge */}
+                      {project.featured && (
+                        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20">
+                          <div className="featured-chip px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-semibold shadow-lg">
+                            Featured
+                          </div>
+                        </div>
+                      )}
+                      {!isImageLoaded && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-accent/10 z-10">
+                          <Loader2 className="size-6 text-muted-foreground animate-spin" />
+                        </div>
+                      )}
+                      <img
+                        src={heroImage.url || `/media/${heroImage.filename}`}
+                        alt={project.title}
+                        loading="lazy"
+                        onLoad={() => handleImageLoad(heroImage.id)}
+                        className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+                          isImageLoaded ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                      
+                      {/* Overlay Info */}
+                      <div className="absolute inset-0 flex flex-col justify-end">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/85 via-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 sm:p-6">
+                          <div>
+                            <h3 className="text-foreground font-semibold text-base sm:text-lg truncate">{project.title}</h3>
+                            {project.description && (
+                              <p className="text-foreground/90 text-xs sm:text-sm mt-1 line-clamp-2">{project.description}</p>
+                            )}
+                            {imageCount > 1 && (
+                              <p className="text-foreground/80 text-xs mt-2">{imageCount} images</p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
           })}
             </div>
           </div>
