@@ -4,8 +4,9 @@ import { put, list, del } from "@vercel/blob"
 interface UpdatePayload {
   title: string
   description: string
-  images: Array<{ id: string; filename: string; url?: string }>
-  blocks: Array<{
+  thumbnailUrl?: string
+  images?: Array<{ id: string; filename: string; url?: string }>
+  blocks?: Array<{
     id: string
     type: string
     content: { text?: string; url?: string; images?: string[] }
@@ -16,7 +17,7 @@ interface UpdatePayload {
 export async function POST(req: NextRequest) {
   try {
     const body: UpdatePayload = await req.json()
-    const { title, description, images, blocks, projectId } = body
+    const { title, description, thumbnailUrl, images, blocks, projectId } = body
 
     console.log("[v0] Updating case study:", title)
 
@@ -25,6 +26,7 @@ export async function POST(req: NextRequest) {
     const caseStudyData = {
       title,
       description,
+      thumbnailUrl,
       images,
       blocks,
       updatedAt: new Date().toISOString(),

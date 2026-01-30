@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Edit2, X, Save, Plus, Trash2, Copy, Move, GripVertical } from 'lucide-react'
+import { ArrowLeft, Loader2, Edit2, X, Save, Plus, Trash2, Copy, Move, GripVertical, Image as ImageIcon } from 'lucide-react'
 import { createSlug } from '@/lib/slug'
+import { LaptopFrame } from '@/components/laptop-frame'
 
 interface MediaItem {
   id: string
@@ -27,7 +28,7 @@ interface Project {
 
 interface ContentBlock {
   id: string
-  type: 'heading' | 'paragraph' | 'image' | 'divider'
+  type: 'heading' | 'paragraph' | 'image' | 'divider' | 'prototype'
   content: {
     text?: string
     url?: string
@@ -43,6 +44,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
   const [isSaving, setIsSaving] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
+  const [editThumbnailUrl, setEditThumbnailUrl] = useState('')
   const [blocks, setBlocks] = useState<ContentBlock[]>([])
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
 
@@ -88,6 +90,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
           setProject(foundProject)
           setEditTitle(foundProject.title)
           setEditDescription(foundProject.description)
+          setEditThumbnailUrl(foundProject.images[0]?.url || foundProject.images[0]?.filename || '')
         }
       } catch (error) {
         console.error('[v0] Failed to fetch project:', error)
@@ -128,6 +131,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
         body: JSON.stringify({
           title: editTitle,
           description: editDescription,
+          thumbnailUrl: editThumbnailUrl,
           blocks,
           projectId: project?.id,
         }),
@@ -196,6 +200,25 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
           <div className="max-w-4xl mx-auto">
             {/* Metadata Editing */}
             <div className="mb-12 pb-8 border-b border-border/20">
+              {/* Thumbnail Editor */}
+              <div className="mb-8">
+                <label className="block text-xs font-semibold text-foreground/60 mb-3">THUMBNAIL IMAGE</label>
+                <div className="space-y-3">
+                  <div className="relative h-48 rounded-lg overflow-hidden bg-muted border-2 border-border/30">
+                    {editThumbnailUrl && (
+                      <img src={editThumbnailUrl} alt="Thumbnail" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <input
+                    type="url"
+                    value={editThumbnailUrl}
+                    onChange={(e) => setEditThumbnailUrl(e.target.value)}
+                    placeholder="Thumbnail image URL..."
+                    className="w-full px-3 py-2 rounded-lg border border-border/30 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
+                  />
+                </div>
+              </div>
+
               <div className="mb-6">
                 <label className="block text-xs font-semibold text-foreground/60 mb-2">TITLE</label>
                 <input
@@ -263,6 +286,16 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                         />
                       )}
                       {block.type === 'divider' && <div className="h-px bg-border/20 my-2"></div>}
+                      {block.type === 'prototype' && (
+                        <input
+                          type="url"
+                          value={block.content.url || ''}
+                          onChange={(e) => handleUpdateBlock(block.id, { url: e.target.value })}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full text-foreground bg-transparent focus:outline-none border-b border-border/20 pb-2"
+                          placeholder="Figma prototype URL..."
+                        />
+                      )}
                     </div>
                     <button
                       onClick={(e) => {
@@ -279,7 +312,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
             </div>
 
             {/* Add Block Buttons */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               <button
                 onClick={() => handleAddBlock('heading')}
                 className="p-3 rounded-lg border border-border/30 hover:bg-accent/10 transition-colors text-sm font-medium text-foreground/70"
@@ -298,8 +331,15 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                 onClick={() => handleAddBlock('image')}
                 className="p-3 rounded-lg border border-border/30 hover:bg-accent/10 transition-colors text-sm font-medium text-foreground/70"
               >
-                <Plus className="size-4 mx-auto mb-1" />
+                <ImageIcon className="size-4 mx-auto mb-1" />
                 Image
+              </button>
+              <button
+                onClick={() => handleAddBlock('prototype')}
+                className="p-3 rounded-lg border border-border/30 hover:bg-accent/10 transition-colors text-sm font-medium text-foreground/70"
+              >
+                <Plus className="size-4 mx-auto mb-1" />
+                Prototype
               </button>
               <button
                 onClick={() => handleAddBlock('divider')}
@@ -363,7 +403,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
           {project.description && <p className="text-lg text-foreground/80 mb-12">{project.description}</p>}
           {project.images.length > 0 && (
             <div className="rounded-2xl overflow-hidden bg-muted mb-12">
-              <img src={project.images[0].url || `/media/${project.images[0].filename}`} alt={project.title} className="w-full h-auto object-cover max-h-[600px]" />
+              <img src={editThumbnailUrl || project.images[0].url || `/media/${project.images[0].filename}`} alt={project.title} className="w-full h-auto object-cover max-h-[600px]" />
             </div>
           )}
 
@@ -375,6 +415,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
                   {block.type === 'heading' && <h2 className="text-3xl font-bold text-foreground">{block.content.text}</h2>}
                   {block.type === 'paragraph' && <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{block.content.text}</p>}
                   {block.type === 'image' && block.content.url && <img src={block.content.url} alt="Content" className="w-full h-auto rounded-lg" />}
+                  {block.type === 'prototype' && block.content.url && <LaptopFrame url={block.content.url} className="my-8" />}
                   {block.type === 'divider' && <hr className="border-border/20 my-8" />}
                 </div>
               ))}
