@@ -29,6 +29,7 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+  const [isScrolled, setIsScrolled] = useState(false)
   const { theme } = useTheme()
 
   useEffect(() => {
@@ -77,6 +78,15 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
     fetchProject()
   }, [params.id])
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 150)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
   const handleImageLoad = (imageId: string) => {
     setLoadedImages(prev => new Set([...prev, imageId]))
   }
@@ -104,7 +114,7 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
     <main className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link 
             href="/projects"
             className="inline-flex items-center gap-2 text-accent hover:text-accent/80 transition-colors font-medium"
@@ -112,6 +122,17 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
             <ArrowLeft className="size-4" />
             <span>Back to Projects</span>
           </Link>
+          
+          {/* Center Title - Shows on scroll */}
+          <div 
+            className={`absolute left-1/2 -translate-x-1/2 transition-all duration-300 ${
+              isScrolled ? "opacity-100 visible" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <h2 className="text-lg sm:text-xl font-bold text-foreground line-clamp-1 whitespace-nowrap">
+              {project?.title}
+            </h2>
+          </div>
         </div>
       </nav>
 
