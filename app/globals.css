@@ -310,6 +310,18 @@
   width: 100%;
 }
 
+/* Generic link hover with grey background */
+a:not([class]) {
+  transition: background-color 200ms ease-out, color 200ms ease-out;
+}
+
+a:not([class]):hover {
+  background-color: oklch(0.22 0 0 / 50%);
+  color: var(--foreground);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
 /* Hide scrollbar while keeping scroll functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
