@@ -263,8 +263,8 @@ export function InteractiveGalleryGrid({
 
   return (
     <div className="w-full">
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
+      {/* Grid - Responsive with 1 column on mobile, 2 on tablet, 4 on desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[250px] sm:auto-rows-[300px] lg:auto-rows-[300px]">
         {visualProjects.map((project) => {
           const heroImage = project.images[0]
           if (!heroImage) return null
