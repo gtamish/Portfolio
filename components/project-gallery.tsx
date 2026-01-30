@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, Loader2, Settings2 } from "lucide-react"
 import { useTheme } from "next-themes"
 
 interface MediaItem {
@@ -27,7 +27,7 @@ interface Project {
   featured?: boolean
 }
 
-export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void }) {
+export function ProjectGallery({ filter, onFullscreenChange, onLayoutEditorOpen }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void; onLayoutEditorOpen?: () => void }) {
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
@@ -36,6 +36,7 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
   const [mounted, setMounted] = useState(false)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [imageDimensions, setImageDimensions] = useState<{ [key: string]: { width: number; height: number } }>({})
+  const [customLayout, setCustomLayout] = useState<{ [key: string]: { colSpan: number; rowSpan: number } }>({})
   const [isClosing, setIsClosing] = useState(false)
   const [thumbRect, setThumbRect] = useState<DOMRect | null>(null)
   const thumbRef = useRef<HTMLDivElement>(null)
@@ -98,6 +99,11 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
   useEffect(() => {
     if (mounted) {
       fetchProjects()
+      // Load custom layout
+      fetch("/api/gallery-layout")
+        .then(res => res.json())
+        .then(layout => setCustomLayout(layout))
+        .catch(err => console.error("[v0] Failed to load layout:", err))
     }
   }, [mounted, fetchProjects])
 
@@ -168,18 +174,22 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     }
   }
 
-  // Calculate grid span based on aspect ratio
-  const getGridSpan = (id: string): string => {
+  // Calculate grid span based on aspect ratio or custom layout
+  const getGridSpan = (projectId: string, id: string): string => {
+    // Check custom layout first
+    if (customLayout[projectId]) {
+      const { colSpan, rowSpan } = customLayout[projectId]
+      return `col-span-${colSpan} row-span-${rowSpan}`
+    }
+
+    // Fall back to aspect ratio-based sizing
     const dims = imageDimensions[id]
-    if (!dims) return "col-span-1 row-span-1" // default
+    if (!dims) return "col-span-1 row-span-1"
     
     const aspectRatio = dims.width / dims.height
     
-    // Landscape (wider than tall): 2x1
     if (aspectRatio > 1.5) return "col-span-2 row-span-1"
-    // Portrait (taller than wide): 1x2
     if (aspectRatio < 0.67) return "col-span-1 row-span-2"
-    // Square or near-square: 1x1
     return "col-span-1 row-span-1"
   }
 
@@ -189,6 +199,17 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
     <>
       {/* Gallery Grid - Decrease opacity when fullscreen is open */}
       <div className={`transition-opacity duration-300 ${selectedProject ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
+        {/* Edit Layout Button */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={onLayoutEditorOpen}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent transition-colors font-medium"
+            title="Edit grid layout"
+          >
+            <Settings2 className="size-4" />
+            <span className="hidden sm:inline">Edit Layout</span>
+          </button>
+        </div>
         {isLoading ? (
           <div className="flex justify-center">
             <div className="space-y-8">
@@ -282,7 +303,7 @@ export function ProjectGallery({ filter, onFullscreenChange }: { filter?: string
 
                     const imageCount = project.images.length
                     const isImageLoaded = loadedImages.has(heroImage.id)
-                    const gridSpan = getGridSpan(heroImage.id)
+                    const gridSpan = getGridSpan(project.id, heroImage.id)
 
                     return (
                       <div
