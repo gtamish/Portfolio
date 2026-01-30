@@ -244,8 +244,26 @@ export function InteractiveGalleryGrid({
                 />
               </div>
 
-              {/* Project Overlay - Show for all projects when not in edit mode */}
-              {!editMode && (
+              {/* Project Info Overlay - Sticky header when expanded */}
+              {!editMode && (layout[project.id]?.colSpan || 1) > 1 || (layout[project.id]?.rowSpan || 1) > 1 ? (
+                <div className="absolute top-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-b from-black/80 via-black/60 to-transparent">
+                  <h4 className="text-white font-semibold text-base sm:text-lg line-clamp-2">
+                    {project.title}
+                  </h4>
+                  {project.description && (
+                    <p className="text-white/80 text-sm mt-1 line-clamp-2">
+                      {project.description}
+                    </p>
+                  )}
+                  {isCaseStudy && (
+                    <div className="flex items-center gap-2 text-accent font-semibold text-sm mt-3 group-hover:translate-x-1 transition-transform">
+                      <span>Read case study</span>
+                      <ChevronRight className="size-4" />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Project Overlay - Show for standard 1x1 projects when not in edit mode */
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-start justify-end pointer-events-none p-4 sm:p-6">
                   <div className="text-left">
                     <h4 className="text-white font-semibold text-sm sm:text-base mb-2">
