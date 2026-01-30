@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { put, list } from "@vercel/blob"
 
-const PASSKEY = process.env.EDIT_PASSKEY || "default-passkey"
+const PASSKEY = process.env.NEXT_PUBLIC_PASSKEY || "default-passkey"
 const METADATA_KEY = "projects-metadata.json"
 
 interface ProjectMetadata {
