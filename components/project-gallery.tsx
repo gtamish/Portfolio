@@ -28,7 +28,7 @@ interface Project {
   featured?: boolean
 }
 
-export function ProjectGallery({ filter, onFullscreenChange, onLayoutEditorOpen }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void; onLayoutEditorOpen?: () => void }) {
+export function ProjectGallery({ filter, onFullscreenChange, isLayoutEditMode }: { filter?: string | null; onFullscreenChange?: (isFullscreen: boolean) => void; isLayoutEditMode?: boolean }) {
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
@@ -240,6 +240,7 @@ export function ProjectGallery({ filter, onFullscreenChange, onLayoutEditorOpen 
                   projects={filteredProjects}
                   currentLayout={customLayout}
                   onLayoutChange={setCustomLayout}
+                  isEditMode={isLayoutEditMode}
                   onProjectClick={(project) => {
                     if (project.tag === "Case Studies") {
                       const caseStudyIndex = filteredProjects.filter(p => p.tag === "Case Studies").findIndex(p => p.id === project.id)

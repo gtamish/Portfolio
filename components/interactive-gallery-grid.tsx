@@ -35,12 +35,18 @@ export function InteractiveGalleryGrid({
   onLayoutChange,
   currentLayout,
   onProjectClick,
-}: InteractiveGalleryGridProps) {
+  isEditMode,
+  onEditModeChange,
+  onSave,
+}: InteractiveGalleryGridProps & {
+  isEditMode?: boolean
+  onEditModeChange?: (mode: boolean) => void
+  onSave?: () => void
+}) {
   const [layout, setLayout] = useState<ProjectLayout>(currentLayout)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const editMode = isEditMode ?? false
   const [dragState, setDragState] = useState<DragState>({
     projectId: null,
     startX: 0,
@@ -90,7 +96,7 @@ export function InteractiveGalleryGrid({
     handle: "right" | "bottom" | "corner",
     e: React.MouseEvent
   ) => {
-    if (!isEditMode) return
+    if (!editMode) return
     e.preventDefault()
     e.stopPropagation()
 
@@ -208,32 +214,6 @@ export function InteractiveGalleryGrid({
 
   return (
     <div className="w-full">
-      {/* Floating Controls - Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-30 flex items-center gap-3">
-        {isEditMode && (
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center justify-center p-3 rounded-full bg-accent hover:bg-accent/90 text-background transition-colors disabled:opacity-50 shadow-lg"
-            title={isSaving ? "Saving..." : "Save layout"}
-          >
-            <Save className="size-5" />
-          </button>
-        )}
-        
-        <button
-          onClick={isEditMode ? () => setIsEditMode(false) : handleAuthenticate}
-          className="inline-flex items-center justify-center p-3 rounded-full bg-accent/10 hover:bg-accent/20 text-accent transition-colors shadow-lg"
-          title={isEditMode ? "Lock grid" : "Edit layout"}
-        >
-          {isEditMode ? (
-            <Lock className="size-5" />
-          ) : (
-            <Grid3x3 className="size-5" />
-          )}
-        </button>
-      </div>
-
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-[300px]">
         {visualProjects.map((project) => {
@@ -248,11 +228,11 @@ export function InteractiveGalleryGrid({
           return (
             <div
               key={project.id}
-              onMouseEnter={() => isEditMode && setSelectedProjectId(project.id)}
+              onMouseEnter={() => editMode && setSelectedProjectId(project.id)}
               onMouseLeave={() => setSelectedProjectId(null)}
-              onClick={() => !isEditMode && onProjectClick && onProjectClick(project)}
+              onClick={() => !editMode && onProjectClick && onProjectClick(project)}
               className={`group relative cursor-pointer rounded-2xl overflow-visible transition-all duration-300 ${
-                isEditMode ? "ring-2 ring-accent/30" : ""
+                editMode ? "ring-2 ring-accent/30" : ""
               } ${isSelected ? "ring-2 ring-accent" : ""} ${isDragging ? "ring-2 ring-accent" : ""} ${span}`}
             >
               {/* Image Container */}
@@ -265,7 +245,7 @@ export function InteractiveGalleryGrid({
               </div>
 
               {/* Project Overlay - Show for all projects when not in edit mode */}
-              {!isEditMode && (
+              {!editMode && (
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-start justify-end pointer-events-none p-4 sm:p-6">
                   <div className="text-left">
                     <h4 className="text-white font-semibold text-sm sm:text-base mb-2">
@@ -287,7 +267,7 @@ export function InteractiveGalleryGrid({
               )}
 
               {/* Edit Mode Overlay */}
-              {isEditMode && (
+              {editMode && (
                 <div className="absolute inset-0 rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                   <div className="space-y-4 text-center">
                     <h4 className="text-white font-semibold text-sm">
@@ -304,7 +284,7 @@ export function InteractiveGalleryGrid({
               )}
 
               {/* Right border drag handle */}
-              {isEditMode && (
+              {editMode && (
                 <div
                   onMouseDown={(e) => handleResizeStart(project.id, "right", e)}
                   className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:w-2 hover:bg-accent/60 transition-all opacity-0 group-hover:opacity-100 ${
@@ -317,7 +297,7 @@ export function InteractiveGalleryGrid({
               )}
 
               {/* Bottom border drag handle */}
-              {isEditMode && (
+              {editMode && (
                 <div
                   onMouseDown={(e) => handleResizeStart(project.id, "bottom", e)}
                   className={`absolute bottom-0 left-0 h-1 w-full cursor-row-resize hover:h-2 hover:bg-accent/60 transition-all opacity-0 group-hover:opacity-100 ${
@@ -330,7 +310,7 @@ export function InteractiveGalleryGrid({
               )}
 
               {/* Corner drag handle */}
-              {isEditMode && (
+              {editMode && (
                 <div
                   onMouseDown={(e) => handleResizeStart(project.id, "corner", e)}
                   className={`absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-nwse-resize ${
@@ -351,7 +331,7 @@ export function InteractiveGalleryGrid({
       </div>
 
       {/* Help Text */}
-      {isEditMode && (
+      {editMode && (
         <div className="mt-6 p-4 rounded-lg bg-accent/10 border border-accent/20">
           <p className="text-sm text-foreground/80">
             <strong>Edit Mode:</strong> Hover over boxes to reveal resize handles. Drag the borders (right edge for width, bottom edge for height, corner for both) to resize. Changes update in real-time. Click Save Layout to persist.

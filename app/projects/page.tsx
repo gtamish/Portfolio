@@ -15,12 +15,42 @@ export default function Projects() {
   const [galleryKey, setGalleryKey] = useState(0)
   const [selectedFilter, setSelectedFilter] = useState<ProjectTag | null>(null)
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+  const [isLayoutEditMode, setIsLayoutEditMode] = useState(false)
+  const [isLayoutSaving, setIsLayoutSaving] = useState(false)
 
   const handleProjectsUpdated = () => {
     setGalleryKey(k => k + 1)
     setTimeout(() => {
       setShowEditModal(false)
     }, 300)
+  }
+
+  const handleLayoutSave = async () => {
+    setIsLayoutSaving(true)
+    try {
+      const passkey = prompt("Enter passkey to save layout:")
+      if (!passkey) {
+        setIsLayoutSaving(false)
+        return
+      }
+
+      const response = await fetch("/api/gallery-layout", {
+        method: "PUT",
+        body: JSON.stringify({ passkey, layout: {} }),
+      })
+
+      if (response.ok) {
+        alert("Layout saved successfully!")
+        setIsLayoutEditMode(false)
+      } else {
+        alert("Failed to save layout")
+      }
+    } catch (error) {
+      console.error("[v0] Failed to save layout:", error)
+      alert("Error saving layout")
+    } finally {
+      setIsLayoutSaving(false)
+    }
   }
 
   return (
@@ -49,13 +79,20 @@ export default function Projects() {
               key={galleryKey} 
               filter={selectedFilter} 
               onFullscreenChange={setIsFullscreenOpen}
+              isLayoutEditMode={isLayoutEditMode}
             />
           </div>
         </div>
       </section>
       <div className={`transition-opacity duration-300 ${isFullscreenOpen ? "opacity-10" : "opacity-100"}`}>
         <FloatingDock />
-        <AnimatedThemeToggle onEditClick={() => setShowEditModal(true)} />
+        <AnimatedThemeToggle 
+          onEditClick={() => setShowEditModal(true)}
+          isLayoutEditMode={isLayoutEditMode}
+          onLayoutEditModeChange={setIsLayoutEditMode}
+          onLayoutSave={handleLayoutSave}
+          isLayoutSaving={isLayoutSaving}
+        />
       </div>
       <ProjectEditModal 
         isOpen={showEditModal} 
