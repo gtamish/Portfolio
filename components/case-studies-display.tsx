@@ -61,7 +61,7 @@ export function CaseStudiesDisplay({ projects, onImageLoad }: { projects: Projec
               </div>
 
               {/* Right: Content (2 parts) */}
-              <div className="col-span-2 flex flex-col justify-center p-6 sm:p-8 lg:p-10 bg-white/10 backdrop-blur-md">
+              <div className="col-span-2 flex flex-col justify-center p-6 sm:p-8 lg:p-10 bg-card/40 backdrop-blur-md">
                 <div className="space-y-4">
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground line-clamp-2">
                     {project.title}

@@ -73,7 +73,7 @@ export function ProjectUploadDialog({ isOpen, onClose, onUpload, isUploading }: 
       
       <div className="relative w-full max-w-2xl rounded-2xl glass-panel shadow-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10 dark:border-white/5">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <h2 className="text-xl font-bold text-foreground">Upload New Project</h2>
           <button onClick={onClose} className="p-2 hover:bg-accent/20 rounded-lg transition-colors">
             <X className="size-5" />
@@ -90,7 +90,7 @@ export function ProjectUploadDialog({ isOpen, onClose, onUpload, isUploading }: 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter project title"
-              className="w-full px-4 py-2 rounded-lg bg-background/40 border border-white/10 dark:border-white/5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full px-4 py-2 rounded-lg bg-background/40 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
 
@@ -102,7 +102,7 @@ export function ProjectUploadDialog({ isOpen, onClose, onUpload, isUploading }: 
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter project description"
               rows={3}
-              className="w-full px-4 py-2 rounded-lg bg-background/40 border border-white/10 dark:border-white/5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+              className="w-full px-4 py-2 rounded-lg bg-background/40 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-none"
             />
           </div>
 
@@ -112,7 +112,7 @@ export function ProjectUploadDialog({ isOpen, onClose, onUpload, isUploading }: 
             <select
               value={tag}
               onChange={(e) => setTag(e.target.value as "Visuals" | "Case Studies")}
-              className="w-full px-4 py-2 rounded-lg bg-background/40 border border-white/10 dark:border-white/5 text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full px-4 py-2 rounded-lg bg-background/40 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
             >
               <option value="Visuals">Visuals</option>
               <option value="Case Studies">Case Studies</option>
@@ -167,7 +167,7 @@ export function ProjectUploadDialog({ isOpen, onClose, onUpload, isUploading }: 
                       }`}
                       onClick={() => setPreviewImage(img)}
                     />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 rounded flex items-center justify-center gap-1 transition-opacity">
+                    <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 rounded flex items-center justify-center gap-1 transition-opacity">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -175,7 +175,7 @@ export function ProjectUploadDialog({ isOpen, onClose, onUpload, isUploading }: 
                         }}
                         className="p-1 bg-destructive rounded hover:bg-destructive/80"
                       >
-                        <Trash2 className="size-4 text-white" />
+                        <Trash2 className="size-4 text-destructive-foreground" />
                       </button>
                     </div>
                   </div>
@@ -186,7 +186,7 @@ export function ProjectUploadDialog({ isOpen, onClose, onUpload, isUploading }: 
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/10 dark:border-white/5 p-6 flex gap-3">
+        <div className="border-t border-border p-6 flex gap-3">
           <button
             onClick={onClose}
             disabled={isUploading}

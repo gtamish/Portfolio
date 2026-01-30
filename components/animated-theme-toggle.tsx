@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ThemeToggle } from "./theme-toggle"
 import { MoreDropdown } from "./more-dropdown"
 import { EditButton } from "./edit-button"
 import { LayoutToggle } from "./layout-toggle"
@@ -117,7 +116,7 @@ export function AnimatedThemeToggle({
           isSaving={isLayoutSaving}
         />
         <EditButton onEditClick={onEditClick} />
-        <ThemeToggle />
+        {/* Theme toggle hidden for now - will be re-added in future */}
       </div>
     </div>
   )

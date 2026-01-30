@@ -56,10 +56,10 @@ export function ImageEditPanel({
   }
 
   return (
-    <div className="mt-3 border-t border-white/10 pt-3">
+    <div className="mt-3 border-t border-border pt-3">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="btn-interactive w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-sm text-muted-foreground hover:text-foreground"
+        className="btn-interactive w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent/10 transition-colors text-sm text-muted-foreground hover:text-foreground"
       >
         <div className="flex items-center gap-2">
           <Edit2 className="size-4" strokeWidth={1.5} />
@@ -73,7 +73,7 @@ export function ImageEditPanel({
       </button>
 
       {isExpanded && (
-        <div className="mt-3 space-y-2 bg-white/5 rounded-lg p-3 max-h-[400px] overflow-y-auto">
+        <div className="mt-3 space-y-2 bg-background/40 rounded-lg p-3 max-h-[400px] overflow-y-auto">
           {/* Add Images Button */}
           {onAddImages && (
             <button
@@ -119,7 +119,7 @@ export function ImageEditPanel({
                   setDraggedImageIndex(null)
                 }
               }}
-              className="group p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-all space-y-2 cursor-move"
+              className="group p-3 bg-background/50 rounded-lg hover:bg-background/70 transition-all space-y-2 cursor-move"
             >
               {/* Image Preview and Reorder Handle */}
               <div className="flex items-start gap-2">
