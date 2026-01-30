@@ -280,12 +280,12 @@ export function InteractiveGalleryGrid({
               onMouseEnter={() => editMode && setSelectedProjectId(project.id)}
               onMouseLeave={() => setSelectedProjectId(null)}
               onClick={() => !editMode && onProjectClick && onProjectClick(project)}
-              className={`group relative cursor-pointer rounded-2xl overflow-visible transition-all duration-300 ${
+              className={`group relative cursor-pointer rounded-2xl overflow-visible transition-all duration-300 border border-border/40 ${
                 editMode ? "ring-2 ring-accent/30" : ""
               } ${isSelected ? "ring-2 ring-accent" : ""} ${isDragging ? "ring-2 ring-accent" : ""} ${span}`}
             >
               {/* Image Container */}
-              <div className="w-full h-full rounded-2xl overflow-hidden">
+              <div className="w-full h-full rounded-2xl overflow-hidden border border-border/30">
                 <img
                   src={heroImage.url || `/media/${heroImage.filename}`}
                   alt={project.title}
