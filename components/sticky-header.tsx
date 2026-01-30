@@ -36,7 +36,7 @@ export function StickyHeader({ title }: StickyHeaderProps) {
       `}
     >
       <div className="flex items-center justify-center py-3 sm:py-4 px-6 sm:px-8">
-        <h1 className="text-base sm:text-lg font-semibold text-foreground whitespace-nowrap">{title}</h1>
+        <h1 className="text-base sm:text-lg font-semibold text-foreground whitespace-nowrap mix-blend-mode-lighten">{title}</h1>
       </div>
     </div>
   )

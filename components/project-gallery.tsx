@@ -288,9 +288,9 @@ export function ProjectGallery({ filter, onFullscreenChange, isLayoutEditMode }:
             {/* Title and Description - Top Center */}
             <div className="pt-6 sm:pt-8 lg:pt-10 px-4 sm:px-6 lg:px-8">
               <div className="max-w-2xl mx-auto text-center">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6">{selectedProject.title}</h2>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6 mix-blend-mode-lighten">{selectedProject.title}</h2>
                 {selectedProject.description && (
-                  <p className="text-sm sm:text-base text-foreground/80">{selectedProject.description}</p>
+                  <p className="text-sm sm:text-base text-foreground/80 mix-blend-mode-lighten">{selectedProject.description}</p>
                 )}
               </div>
             </div>

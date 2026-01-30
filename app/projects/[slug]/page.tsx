@@ -189,20 +189,20 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
       <main className="min-h-screen bg-background">
         <nav className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/20">
           <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <span className="text-accent font-medium text-sm">Edit Mode - Real-time editing</span>
+            <span className="text-accent font-medium text-sm mix-blend-mode-lighten">Edit Mode - Real-time editing</span>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-background font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-background font-medium hover:bg-accent/90 transition-colors disabled:opacity-50 mix-blend-mode-lighten"
               >
                 <Save className="size-4" />
                 {isSaving ? 'Saving...' : 'Publish'}
               </button>
               <button
                 onClick={() => setIsEditMode(false)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/10 text-accent transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/10 text-accent transition-colors mix-blend-mode-lighten"
               >
                 <X className="size-4" />
               </button>
@@ -216,7 +216,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
             <div className="mb-12 pb-8 border-b border-border/20">
               {/* Thumbnail Editor */}
               <div className="mb-8">
-                <label className="block text-xs font-semibold text-foreground/60 mb-3">THUMBNAIL IMAGE</label>
+                <label className="block text-xs font-semibold text-foreground/60 mb-3 mix-blend-mode-lighten">THUMBNAIL IMAGE</label>
                 <div className="space-y-3">
                   <div className="relative h-48 rounded-lg overflow-hidden bg-muted border-2 border-border/30">
                     {editThumbnailUrl && (
@@ -234,22 +234,22 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
               </div>
 
               <div className="mb-6">
-                <label className="block text-xs font-semibold text-foreground/60 mb-2">TITLE</label>
+                <label className="block text-xs font-semibold text-foreground/60 mb-2 mix-blend-mode-lighten">TITLE</label>
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full text-4xl font-bold text-foreground bg-transparent border-b-2 border-accent/20 focus:border-accent pb-2 focus:outline-none transition-colors"
+                  className="w-full text-4xl font-bold text-foreground bg-transparent border-b-2 border-accent/20 focus:border-accent pb-2 focus:outline-none transition-colors mix-blend-mode-lighten"
                   placeholder="Case Study Title"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground/60 mb-2">DESCRIPTION</label>
+                <label className="block text-xs font-semibold text-foreground/60 mb-2 mix-blend-mode-lighten">DESCRIPTION</label>
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full text-lg text-foreground/80 bg-transparent border-b-2 border-accent/20 focus:border-accent pb-2 focus:outline-none transition-colors resize-none"
+                  className="w-full text-lg text-foreground/80 bg-transparent border-b-2 border-accent/20 focus:border-accent pb-2 focus:outline-none transition-colors resize-none mix-blend-mode-lighten"
                   placeholder="Project description..."
                   rows={3}
                 />
@@ -413,12 +413,12 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {project.featured && (
-            <div className="inline-block mb-6 featured-chip px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm font-semibold shadow-lg">
+            <div className="inline-block mb-6 featured-chip px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm font-semibold shadow-lg mix-blend-mode-lighten">
               Featured Case Study
             </div>
           )}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">{project.title}</h1>
-          {project.description && <p className="text-lg text-foreground/80 mb-12">{project.description}</p>}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 mix-blend-mode-lighten">{project.title}</h1>
+          {project.description && <p className="text-lg text-foreground/80 mb-12 mix-blend-mode-lighten">{project.description}</p>}
           {project.images.length > 0 && (
             <div className="rounded-2xl overflow-hidden bg-muted mb-12">
               <img src={editThumbnailUrl || project.images[0].url || `/media/${project.images[0].filename}`} alt={project.title} className="w-full h-auto object-cover max-h-[600px]" />
@@ -430,8 +430,8 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
             <div className="prose prose-invert max-w-none space-y-6 mb-12">
               {blocks.map((block) => (
                 <div key={block.id}>
-                  {block.type === 'heading' && <h2 className="text-3xl font-bold text-foreground">{block.content.text}</h2>}
-                  {block.type === 'paragraph' && <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{block.content.text}</p>}
+                  {block.type === 'heading' && <h2 className="text-3xl font-bold text-foreground mix-blend-mode-lighten">{block.content.text}</h2>}
+                  {block.type === 'paragraph' && <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap mix-blend-mode-lighten">{block.content.text}</p>}
                   {block.type === 'image' && block.content.url && <img src={block.content.url} alt="Content" className="w-full h-auto rounded-lg" />}
                   {block.type === 'prototype' && block.content.url && <LaptopFrame url={block.content.url} className="my-8" />}
                   {block.type === 'divider' && <hr className="border-border/20 my-8" />}
@@ -442,7 +442,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
 
           {project.images.length > 1 && (
             <div className="space-y-12">
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">Project Details</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8 mix-blend-mode-lighten">Project Details</h2>
               <div className="grid gap-8">
                 {project.images.slice(1).map((image) => (
                   <div key={image.id} className="rounded-xl overflow-hidden bg-muted">

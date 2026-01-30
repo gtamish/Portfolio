@@ -60,10 +60,10 @@ export default function Projects() {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className={`text-center mb-8 sm:mb-12 transition-opacity duration-300 ${isFullscreenOpen ? "opacity-10 pointer-events-none" : "opacity-100"}`}>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground font-bold animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground font-bold animate-fade-in-up mix-blend-mode-lighten" style={{ animationDelay: "0.1s" }}>
               My Projects
             </h1>
-            <p className="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <p className="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-fade-in-up mix-blend-mode-lighten" style={{ animationDelay: "0.2s" }}>
               A curated collection of my creative work, case studies, and design explorations.
             </p>
           </div>
