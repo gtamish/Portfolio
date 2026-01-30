@@ -417,8 +417,8 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
               Featured Case Study
             </div>
           )}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">{project.title}</h1>
-          {project.description && <p className="text-lg text-foreground/80 mb-12">{project.description}</p>}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 bg-black/40 backdrop-blur-sm p-4 rounded-lg">{project.title}</h1>
+          {project.description && <p className="text-lg text-foreground/90 mb-12 bg-black/40 backdrop-blur-sm p-4 rounded-lg">{project.description}</p>}
           {project.images.length > 0 && (
             <div className="rounded-2xl overflow-hidden bg-muted mb-12">
               <img src={editThumbnailUrl || project.images[0].url || `/media/${project.images[0].filename}`} alt={project.title} className="w-full h-auto object-cover max-h-[600px]" />
