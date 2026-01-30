@@ -31,7 +31,8 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
   const { theme } = useTheme()
 
   useEffect(() => {
@@ -117,13 +118,17 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
       {/* Navigation */}
       <nav className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link 
-            href="/projects"
-            className="inline-flex items-center gap-2 text-accent hover:text-accent/80 transition-colors font-medium"
-          >
-            <ArrowLeft className="size-4" />
-            <span>Back to Projects</span>
-          </Link>
+          {isEditMode ? (
+            <span className="text-accent font-medium text-sm">Edit Mode</span>
+          ) : (
+            <Link 
+              href="/projects"
+              className="inline-flex items-center gap-2 text-accent hover:text-accent/80 transition-colors font-medium"
+            >
+              <ArrowLeft className="size-4" />
+              <span>Back to Projects</span>
+            </Link>
+          )}
           
           {/* Center Title - Shows on scroll */}
           <div 
@@ -138,121 +143,156 @@ export default function CaseStudyPage({ params }: { params: { id: string } }) {
 
           {/* Edit Button */}
           <button
-            onClick={() => setIsEditModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/10 text-accent transition-colors"
-            title="Edit case study"
+            onClick={async () => {
+              if (!isEditMode) {
+                const passkey = prompt("Enter passkey to edit:")
+                if (passkey) {
+                  setIsAuthenticating(true)
+                  try {
+                    const response = await fetch("/api/verify-passkey", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ passkey }),
+                    })
+                    if (response.ok) {
+                      setIsEditMode(true)
+                    } else {
+                      alert("Invalid passkey")
+                    }
+                  } catch (err) {
+                    alert("Error verifying passkey")
+                  } finally {
+                    setIsAuthenticating(false)
+                  }
+                }
+              } else {
+                setIsEditMode(false)
+              }
+            }}
+            disabled={isAuthenticating}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/10 text-accent transition-colors disabled:opacity-50"
+            title={isEditMode ? "Exit edit mode" : "Edit case study"}
           >
             <Edit2 className="size-4" />
-            <span className="hidden sm:inline text-sm font-medium">Edit</span>
+            <span className="hidden sm:inline text-sm font-medium">{isEditMode ? "Done" : "Edit"}</span>
           </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-8 sm:pt-12 lg:pt-16 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Featured Badge */}
-          {project.featured && (
-            <div className="inline-block mb-6">
-              <div className="featured-chip px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg">
-                Featured Case Study
-              </div>
-            </div>
-          )}
+      {/* Content - Editor or View Mode */}
+      {isEditMode ? (
+        <NotionPageBuilder
+          isOpen={true}
+          onClose={() => setIsEditMode(false)}
+          projectId={project?.id || ""}
+          projectTitle={project?.title || ""}
+          onSave={() => {
+            setIsEditMode(false)
+            // Optionally refresh the page content
+          }}
+          isInline={true}
+        />
+      ) : (
+        <>
+          {/* Hero Section */}
+          <section className="relative pt-8 sm:pt-12 lg:pt-16 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto">
+              {/* Featured Badge */}
+              {project?.featured && (
+                <div className="inline-block mb-6">
+                  <div className="featured-chip px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg">
+                    Featured Case Study
+                  </div>
+                </div>
+              )}
 
-          {/* Title */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight text-balance">
-            {project.title}
-          </h1>
+              {/* Title */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight text-balance">
+                {project?.title}
+              </h1>
 
-          {/* Description */}
-          {project.description && (
-            <p className="text-base sm:text-lg lg:text-xl text-foreground/80 leading-relaxed max-w-3xl mb-12">
-              {project.description}
-            </p>
-          )}
+              {/* Description */}
+              {project?.description && (
+                <p className="text-base sm:text-lg lg:text-xl text-foreground/80 leading-relaxed max-w-3xl mb-12">
+                  {project.description}
+                </p>
+              )}
 
-          {/* First Image - Hero */}
-          {project.images.length > 0 && (
-            <div className="relative rounded-2xl overflow-hidden bg-muted mb-12">
-              <div className={`relative w-full transition-opacity duration-300 ${loadedImages.has(project.images[0].id) ? "opacity-100" : "opacity-0"}`}>
-                <img
-                  src={project.images[0].url || `/media/${project.images[0].filename}`}
-                  alt={project.title}
-                  onLoad={() => handleImageLoad(project.images[0].id)}
-                  className="w-full h-auto object-contain max-h-[600px]"
-                />
-              </div>
-              {!loadedImages.has(project.images[0].id) && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="size-8 text-accent animate-spin" />
+              {/* First Image - Hero */}
+              {project && project.images.length > 0 && (
+                <div className="relative rounded-2xl overflow-hidden bg-muted mb-12">
+                  <div className={`relative w-full transition-opacity duration-300 ${loadedImages.has(project.images[0].id) ? "opacity-100" : "opacity-0"}`}>
+                    <img
+                      src={project.images[0].url || `/media/${project.images[0].filename}`}
+                      alt={project.title}
+                      onLoad={() => handleImageLoad(project.images[0].id)}
+                      className="w-full h-auto object-contain max-h-[600px]"
+                    />
+                  </div>
+                  {!loadedImages.has(project.images[0].id) && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Loader2 className="size-8 text-accent animate-spin" />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </section>
+          </section>
 
-      {/* Content Sections */}
-      <section className="pb-16 sm:pb-20 lg:pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Additional Images Gallery */}
-          {project.images.length > 1 && (
-            <div className="space-y-12">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">Project Details</h2>
-                
-                <div className="grid gap-8">
-                  {project.images.slice(1).map((image, idx) => (
-                    <div
-                      key={image.id}
-                      className="group relative rounded-xl overflow-hidden bg-muted"
-                    >
-                      <div className={`relative w-full transition-opacity duration-300 ${loadedImages.has(image.id) ? "opacity-100" : "opacity-0"}`}>
-                        <img
-                          src={image.url || `/media/${image.filename}`}
-                          alt={`${project.title} - Detail ${idx + 2}`}
-                          onLoad={() => handleImageLoad(image.id)}
-                          className="w-full h-auto object-contain"
-                        />
-                      </div>
-                      {!loadedImages.has(image.id) && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Loader2 className="size-6 text-accent animate-spin" />
+          {/* Content Sections */}
+          <section className="pb-16 sm:pb-20 lg:pb-24 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto">
+              {/* Additional Images Gallery */}
+              {project && project.images.length > 1 && (
+                <div className="space-y-12">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">Project Details</h2>
+                    
+                    <div className="grid gap-8">
+                      {project.images.slice(1).map((image, idx) => (
+                        <div
+                          key={image.id}
+                          className="group relative rounded-xl overflow-hidden bg-muted"
+                        >
+                          <div className={`relative w-full transition-opacity duration-300 ${loadedImages.has(image.id) ? "opacity-100" : "opacity-0"}`}>
+                            <img
+                              src={image.url || `/media/${image.filename}`}
+                              alt={`${project.title} - Detail ${idx + 2}`}
+                              onLoad={() => handleImageLoad(image.id)}
+                              className="w-full h-auto object-contain"
+                            />
+                          </div>
+                          {!loadedImages.has(image.id) && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Loader2 className="size-6 text-accent animate-spin" />
+                            </div>
+                          )}
                         </div>
-                      )}
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Footer CTA */}
+              <div className="mt-16 pt-12 border-t border-border/20">
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                  <div>
+                    <p className="text-foreground/70 text-sm mb-2">Ready to see more projects?</p>
+                    <h3 className="text-lg font-semibold text-foreground">Explore More Work</h3>
+                  </div>
+                  <Link
+                    href="/projects"
+                    className="btn-interactive px-6 py-3 rounded-full bg-accent text-background font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                  >
+                    Back to Gallery
+                  </Link>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Footer CTA */}
-          <div className="mt-16 pt-12 border-t border-border/20">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div>
-                <p className="text-foreground/70 text-sm mb-2">Ready to see more projects?</p>
-                <h3 className="text-lg font-semibold text-foreground">Explore More Work</h3>
-              </div>
-              <Link
-                href="/projects"
-                className="btn-interactive px-6 py-3 rounded-full bg-accent text-background font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
-              >
-                Back to Gallery
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Edit Modal */}
-      <NotionPageBuilder
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        projectId={project.id}
-        projectTitle={project.title}
-      />
+          </section>
+        </>
+      )}
     </main>
   )
 }
