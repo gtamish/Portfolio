@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { Lock, Unlock, Save, X, GripHorizontal, GripVertical } from "lucide-react"
+import { Lock, Unlock, Save, X, GripHorizontal, GripVertical, ChevronRight } from "lucide-react"
 
 interface ProjectLayout {
   [projectId: string]: { colSpan: number; rowSpan: number }
@@ -11,10 +11,14 @@ interface InteractiveGalleryGridProps {
   projects: Array<{
     id: string
     title: string
+    description?: string
+    tag?: "Visuals" | "Case Studies"
+    featured?: boolean
     images: Array<{ id: string; url?: string; filename: string }>
   }>
   onLayoutChange: (layout: ProjectLayout) => void
   currentLayout: ProjectLayout
+  onProjectClick?: (project: any) => void
 }
 
 interface DragState {
@@ -30,6 +34,7 @@ export function InteractiveGalleryGrid({
   projects,
   onLayoutChange,
   currentLayout,
+  onProjectClick,
 }: InteractiveGalleryGridProps) {
   const [layout, setLayout] = useState<ProjectLayout>(currentLayout)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -235,12 +240,14 @@ export function InteractiveGalleryGrid({
           const span = getGridSpan(project.id)
           const isSelected = selectedProjectId === project.id
           const isDragging = dragState.projectId === project.id
+          const isCaseStudy = project.tag === "Case Studies"
 
           return (
             <div
               key={project.id}
               onMouseEnter={() => isEditMode && setSelectedProjectId(project.id)}
               onMouseLeave={() => setSelectedProjectId(null)}
+              onClick={() => !isEditMode && onProjectClick && onProjectClick(project)}
               className={`group relative cursor-pointer rounded-2xl overflow-visible transition-all duration-300 ${
                 isEditMode ? "ring-2 ring-accent/30" : ""
               } ${isSelected ? "ring-2 ring-accent" : ""} ${isDragging ? "ring-2 ring-accent" : ""} ${span}`}
@@ -253,6 +260,26 @@ export function InteractiveGalleryGrid({
                   className="w-full h-full object-cover"
                 />
               </div>
+
+              {/* Case Study Overlay - Always show when not in edit mode */}
+              {!isEditMode && isCaseStudy && (
+                <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-end justify-end pointer-events-none p-4 sm:p-6">
+                  <div className="text-right">
+                    <h4 className="text-white font-semibold text-sm sm:text-base mb-2">
+                      {project.title}
+                    </h4>
+                    {project.description && (
+                      <p className="text-white/80 text-xs sm:text-sm line-clamp-2 mb-2">
+                        {project.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 text-accent font-semibold text-xs sm:text-sm group-hover:translate-x-1 transition-transform">
+                      <span>Read case study</span>
+                      <ChevronRight className="size-4" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Edit Mode Overlay */}
               {isEditMode && (
