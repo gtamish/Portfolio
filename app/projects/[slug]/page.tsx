@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Loader2, Edit2, X, Save, Plus, Trash2, Copy, Move, GripVertical, Image as ImageIcon } from 'lucide-react'
 import { createSlug } from '@/lib/slug'
 import { LaptopFrame } from '@/components/laptop-frame'
+import { getContrastTextColor, getAverageImageColor } from '@/lib/contrast'
 
 interface MediaItem {
   id: string
@@ -47,6 +48,7 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
   const [editThumbnailUrl, setEditThumbnailUrl] = useState('')
   const [blocks, setBlocks] = useState<ContentBlock[]>([])
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
+  const [textColorMode, setTextColorMode] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -91,6 +93,18 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
           setEditTitle(foundProject.title)
           setEditDescription(foundProject.description)
           setEditThumbnailUrl(foundProject.images[0]?.url || foundProject.images[0]?.filename || '')
+          
+          // Calculate text color based on hero image
+          const heroImage = foundProject.images[0]
+          if (heroImage) {
+            getAverageImageColor(heroImage.url || `/media/${heroImage.filename}`)
+              .then(color => {
+                setTextColorMode(getContrastTextColor(color))
+              })
+              .catch(() => {
+                setTextColorMode('light') // Fallback
+              })
+          }
         }
       } catch (error) {
         console.error('[v0] Failed to fetch project:', error)
@@ -398,7 +412,11 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
 
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          {project.featured && <div className="inline-block mb-6 featured-chip px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg">Featured Case Study</div>}
+          {project.featured && (
+            <div className="inline-block mb-6 featured-chip px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm font-semibold shadow-lg">
+              Featured Case Study
+            </div>
+          )}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">{project.title}</h1>
           {project.description && <p className="text-lg text-foreground/80 mb-12">{project.description}</p>}
           {project.images.length > 0 && (
